@@ -11,4 +11,7 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        outDir: 'public/dist', // Asegúrate de que esta ruta sea correcta
+    },
 });
