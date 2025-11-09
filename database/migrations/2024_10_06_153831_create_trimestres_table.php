@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,11 +15,21 @@ return new class extends Migration
         Schema::create('trimestres', function (Blueprint $table) {
             $table->id();
             $table->string('periodo');
-            $table->string('estado');
+            $table->boolean('estado')->default(1);
             $table->date('fecha_inicio');
             $table->date('fecha_fin');
+
+            $table->unsignedBigInteger('id_gestion');
+            $table->foreign('id_gestion')->references('id')->on('gestiones')->onDelete('cascade');
+
             $table->timestamps();
         });
+        //use Illuminate\Support\Facades\DB;
+        DB::table('trimestres')->insert([
+            ['periodo' => 'PRIMER TRIMESTRE',  'estado' => 1, 'fecha_inicio' => '2025-02-01', 'fecha_fin' => '2025-04-30', 'id_gestion' => 1,'created_at' => now(), 'updated_at' => now()],
+            ['periodo' => 'SEGUNDO TRIMESTRE', 'estado' => 1, 'fecha_inicio' => '2025-05-01', 'fecha_fin' => '2025-07-31', 'id_gestion' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['periodo' => 'TERCER TRIMESTRE',  'estado' => 1, 'fecha_inicio' => '2025-08-01', 'fecha_fin' => '2025-10-31', 'id_gestion' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ]);
     }
 
     /**

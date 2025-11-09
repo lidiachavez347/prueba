@@ -71,7 +71,7 @@ return [
     'logo_img_xl_class' => null,
     'logo_img_alt' => '',
 
-    'logo_img_login' => 'images/usuario.png', // Ruta de la imagen del logo para la página de login
+    'logo_img_login' => 'images/logo.jpg', // Ruta de la imagen del logo para la página de login
     'logo_img_login_class' => 'brand-image img-circle elevation-3',
 
     /*
@@ -178,7 +178,7 @@ return [
     'classes_auth_card' => 'card-outline card-light',
     'classes_auth_header' => 'bg-dark text-center',
     'classes_auth_body' => 'bg-light',
-    'classes_auth_footer' => 'text-muted',
+    'classes_auth_footer' => 'd-none', ///pra ocultar el footer del logian
     'classes_auth_icon' => 'text-dark',
     'classes_auth_btn' => 'btn-flat btn-dark',
 
@@ -241,7 +241,7 @@ return [
     |
     */
 
-    'right_sidebar' => true,
+    'right_sidebar' => false,
     'right_sidebar_icon' => 'fas fa-home',
     'right_sidebar_theme' => 'dark',
     'right_sidebar_slide' => true,
@@ -416,7 +416,8 @@ return [
             'icon' => 'fas fa-home',
             'topnav_right' => true,
         ],
-        [
+        
+        /*[
             'type' => 'dropdown',
             'text' => 'Mensajes',
             'topnav_right' => true,
@@ -450,26 +451,30 @@ return [
                     'icon' => 'fas fa-inbox',
                 ],
             ],
-        ],
+        ],*/
 
         // Sidebar items:
         [
             'type' => 'sidebar-menu-search',
             'text' => 'search',
         ],
-
-        ['header' => 'Administrador'],
-
         [
             'text' => ' Panel de datos',
             'url' => 'home',
             'icon' => 'fas fa-tachometer-alt',
         ],
         [
+            'header' => 'Administrador',
+            'can'  => 'admin.permisos.index',
+        ],
+        [
             'text' => 'Administracion',
             'icon' => 'fas fa-users',
             'submenu' => [
-                [
+                
+            ],
+        ],
+        [
                     'text' => ' Permisos',
                     'url' => 'admin/permisos',
                     'icon' => 'fa fa-lock',
@@ -487,256 +492,205 @@ return [
                     'icon' => 'fa fa-users',
                     'can'  => 'admin.usuarios.index',
                 ],
-            ],
+        [
+            'header' => 'Academico',
+            'can'  => 'admin.permisos.index',
         ],
         [
-            'text' => 'Academico',
-            'icon' => 'fas fa-book',
-        
-            'submenu' => [
-                [
-                    'text' => ' Estudiantes',
-                    'url' => 'admin/estudiantes',
-                    'icon' => 'fas fa-user-graduate',
-                    'can'  => 'admin.estudiantes.index',
-                ],
-                [
-                    'text' => 'Profesores',
-                    'url' => 'admin/profesores',
-                    'icon' => 'fas fa-chalkboard-teacher',
-                    'can'  => 'admin.profesores.index',
-                ],
-                [
-                    'text' => 'Asignaturas',
-                    'url' => 'admin/asignaturas',
-                    'icon' => 'fas fa-book-open',
-                    'can'  => 'admin.asignaturas.index',
-                ],
-                [
-                    'text' => 'Cursos',
-                    'url' => 'admin/cursos',
-                    'icon' => 'fas fa-graduation-cap',
-                    'can'  => 'admin.cursos.index',
-                ],
-                [
-                    'text' => 'Notas',
-                    'url' => 'admin/notas',
-                    'icon' => 'fas fa-clipboard-list',
-                    'can'  => 'admin.notas.index',
-                ],
-            ],
-        ],
-        [
-            'text' => 'Reportes y Estadisticas',
-            'icon' => 'fas fa-chart-bar',
-            'submenu' => [
-                [
-                    'text' => ' Estudiantes',
-                    'url' => '',
-                    'icon' => 'fas fa-user-graduate',
-                ],
-                [
-                    'text' => 'Docentes',
-                    'url' => '',
-                    'icon' => 'fas fa-chalkboard-teacher',
-                ],
-                [
-                    'text' => 'Asignaturas',
-                    'url' => '',
-                    'icon' => 'fas fa-book-open',
-                ],
-                [
-                    'text' => 'Notas',
-                    'url' => '',
-                    'icon' => 'fas fa-clipboard-list',
-                ],
-            ],
-        ],
-        [
-            'text' => 'Configuracion del Sistema',
-            'icon' => 'fas fa-cogs',
-            'submenu' => [
-                [
-                    'text' => ' Configuracion General',
-                    'url' => '',
-                    'icon' => 'fas fa-cog',
-                ],
-                [
-                    'text' => 'Copias de seguridad',
-                    'url' => 'admin/backup',
-                    'icon' => 'fas fa-database',
-                ],
-                [
-                    'text' => 'Notificaciones',
-                    'url' => '',
-                    'icon' => 'fas fa-bell',
-                ],
-
-            ],
-        ],
-        [
-            'text' => 'Soporte y Ayuda',
-            'icon' => 'fas fa-question-circle',
-            'submenu' => [
-                [
-                    'text' => ' Guia del sistema',
-                    'url' => '',
-                    'icon' => 'fas fa-book',
-                ],
-                [
-                    'text' => 'Contacto con soporte',
-                    'url' => '',
-                    'icon' => 'fas fa-headset',
-                ],
-            ],
+            'text' => 'Configuración',
+            'url' => 'admin/config',
+            'icon' => 'fas fa-cogs', // Representa herramientas y configuración.
+            'can'  => 'admin.config.index',
         ],
 
-        ['header' => 'Director',
-        'can'  => 'director.estudiantes.index',
-    ],
+        [
+            'text' => 'Grados',
+            'url' => 'admin/grados',
+            'icon' => 'fas fa-chalkboard', // Representa enseñanza o grupos académicos.
+            'can'  => 'admin.grados.index',
+        ],
+        [
+            'text' => 'Materias',
+            'url' => 'admin/materias',
+            'icon' => 'fas fa-book', // Representa materias o asignaturas.
+            'can'  => 'admin.materias.index',
+        ],
 
         [
-            'text' => 'Academico',
-            'icon' => 'fas fa-book',
-            'can'  => 'director.estudiantes.index',
-            'submenu' => [
-                [
-                    'text' => ' Estudiantes',
-                    'url' => '',
-                    'icon' => 'fas fa-user-graduate',
-                    'can'  => 'director.estudiantes.index',
-                ],
-                [
-                    'text' => 'Docentes',
-                    'url' => 'director/profesores',
-                    'icon' => 'fas fa-chalkboard-teacher',
-                    'can'  => 'director.profesores.index',
-                ],
-                [
-                    'text' => 'Asignaturas',
-                    'url' => 'director/asignaturas',
-                    'icon' => 'fas fa-book-open',
-                    'can'  => 'director.asignaturas.index',
-                ],
-                [
-                    'text' => 'Cursos',
-                    'url' => 'director/cursos',
-                    'icon' => 'fas fa-graduation-cap',
-                    'can'  => 'director.cursos.index',
-                ],
-                [
-                    'text' => 'Notas',
-                    'url' => '',
-                    'icon' => 'fas fa-clipboard-list',
-                    'can'  => 'director.notas.index',
-                ],
-            ],
+            'text' => 'Estudiantes',
+            'url' => 'admin/estudiantes',
+            'icon' => 'fas fa-user-graduate',
+            'can'  => 'admin.estudiantes.index',
         ],
         [
-            'text' => 'Reportes y Estadisticas',
-            'icon' => 'fas fa-chart-bar',
-            'can'  => 'director.estudiantes.index',
-            'submenu' => [
-                [
-                    'text' => ' Estudiantes',
-                    'url' => '',
-                    'icon' => 'fas fa-user-graduate',
-                ],
-                [
-                    'text' => 'Docentes',
-                    'url' => '',
-                    'icon' => 'fas fa-chalkboard-teacher',
-                ],
-                [
-                    'text' => 'Asignaturas',
-                    'url' => '',
-                    'icon' => 'fas fa-book-open',
-                ],
-                [
-                    'text' => 'Notas',
-                    'url' => '',
-                    'icon' => 'fas fa-clipboard-list',
-                ],
-            ],
+            'text' => 'Tutores',
+            'url' => 'admin/tutores',
+            'icon' => 'fas fa-user-tie',
+            'can'  => 'admin.tutores.index',
         ],
-        
-        ['header' => 'Secretaria',
-        'can'  => 'secretaria.estudiantes.index',],
+
         [
-            'text' => 'Academico',
-            'icon' => 'fas fa-chart-bar',
-            'can'  => 'secretaria.estudiantes.index',
-            'submenu' => [
-                [
-                    'text' => ' Estudiantes',
-                    'url' => '',
-                    'icon' => 'fas fa-user-graduate',
-                ],
-                [
-                    'text' => 'Docentes',
-                    'url' => '',
-                    'icon' => 'fas fa-chalkboard-teacher',
-                ],
-                [
-                    'text' => 'Asignaturas',
-                    'url' => '',
-                    'icon' => 'fas fa-book-open',
-                ],
-                [
-                    'text' => 'Asistencias Profesores',
-                    'url' => '',
-                    'icon' => 'fas fa-clipboard-list',
-                ],
-            ],
+            'text' => 'Profesores',
+            'url' => 'admin/profesores',
+            'icon' => 'fas fa-graduation-cap',
+            'can'  => 'admin.profesores.index',
+        ],
+
+        [
+            'text' => 'Asignar profesor',
+            'url' => 'admin/asignaturas',
+            'icon' => 'fas fa-user-plus', // Representa la asignación o adición de un profesor.
+            'can'  => 'admin.asignaturas.index',
         ],
         [
-            'text' => 'Notas',
-            'url' => '',
-            'icon' => 'fa fa-puzzle-piece',
-            'can'  => 'secretaria.estudiantes.index',
+            'text' => 'Calendario académico',
+            'url' => 'admin/calendario',
+            'icon' => 'fas fa-calendar-alt',
+            'can'  => 'admin.calendario.index',
         ],
-        
+
+
+
+        // [
+        //'text' => 'Asistencias Docentes',
+        ///'icon' => 'fas fa-chart-bar',
+        //'submenu' => [
+        //   [
+        //         'text' => 'Registros',
+        //        'url' => 'admin/asistencias',
+        //        'icon' => 'fas fa-chalkboard-teacher',
+        //      'can'  => 'admin.asistencias.index',
+        //  ],
+
+        //  ],
+        // ],
+        // [
+        //'text' => 'Reportes y Estadisticas',
+        //'icon' => 'fas fa-chart-bar',
+        //'submenu' => [
+        //  [
+        ///       'text' => ' Estudiantes',
+        //       'url' => '',
+        //      'icon' => 'fas fa-user-graduate',
+        // ],
+        /// [
+        //'text' => 'Docentes',
+        //     'url' => '',
+        //    'icon' => 'fas fa-chalkboard-teacher',
+        // ],
+        //  /[
+        //    'text' => 'Modulos',
+        //     'url' => '',
+        //      'icon' => 'fas fa-book-open',
+        //],
+        //],
+        // ],
+
+        //[
+        //  'text' => 'Soporte y Ayuda',
+        //  'icon' => 'fas fa-question-circle',
+        // 'submenu' => [
+        // //    [
+        // 'text' => ' Guia del sistema',
+        //  'url' => '',
+        //  'icon' => 'fas fa-book',
+        // ],
+        // [
+        //  'text' => 'Contacto con soporte',
+        //   'url' => '',
+        //   'icon' => 'fas fa-headset',
+        // ],
+        // ],
+        //],
+
+
         [
-            'text' => 'Agenda y eventos',
-            'icon' => 'fas fa-chart-bar',
-            'can'  => 'secretaria.estudiantes.index',
-            'submenu' => [
-                [
-                    'text' => ' Programae eventos academicos',
-                    'url' => '',
-                    'icon' => 'fas fa-user-graduate',
-                ],
-                [
-                    'text' => 'Calendario academico',
-                    'url' => '',
-                    'icon' => 'fas fa-chalkboard-teacher',
-                ],
-            ],
+            'header' => 'Profesor',
+            'can'  => 'profesor.contenidos.index',
         ],
-        ['header' => 'Profesor',
-        'can'  => 'profesor.estudiantes.index',],
         [
-            'text' => 'Clases',
-            'icon' => 'fas fa-chart-bar',
+            'text' => 'Contenido',
+            'url' => 'profesor/contenidos',
+            'icon' => 'fas fa-book', // Icono de campana para alertas
+            'can'  => 'profesor.contenidos.index',
+        ],
+
+        [
+            'text' => 'Asistencias',
+            'url' => 'profesor/asistencias',
+            'icon' => 'fas fa-check-circle', // Icono para asistencias
+            'can'  => 'profesor.asistencias.index',
+        ],
+        [
+            'text' => 'Temas',
+            'url' => 'profesor/temas',
+            'icon' => 'fas fa-book', // Icono de libro para temas
+            'can'  => 'profesor.temas.index',
+        ],
+        [
+            'text' => 'Tareas',
+            'url' => 'profesor/tareas',
+            'icon' => 'fas fa-tasks', // Icono de tareas o actividades
+            'can'  => 'profesor.tareas.index',
+        ],
+        [
+            'text' => 'Resultado tareas',
+            'url' => 'profesor/resultadotarea',
+            'icon' => 'fas fa-clipboard-check', // Icono para resultados
+            'can'  => 'profesor.resultadotarea.index',
+        ],
+        [
+            'text' => 'Evaluaciones',
+            'url' => 'profesor/evaluaciones',
+            'icon' => 'fas fa-edit', // Icono de lápiz para evaluaciones
+            'can'  => 'profesor.evaluaciones.index',
+        ],
+        [
+            'text' => 'Resultado evaluaciones',
+            'url' => 'profesor/resultadoevaluaciones',
+            'icon' => 'fas fa-chart-bar', // Icono de estadísticas para resultados
+            'can'  => 'profesor.resultadoevaluaciones.index',
+        ],
+        [
+            'text' => 'Estudiantes',
+            'url' => 'profesor/estudiantes',
+            'icon' => 'fas fa-users', // Icono de grupo para estudiantes
             'can'  => 'profesor.estudiantes.index',
-            'submenu' => [
-                [
-                    'text' => 'Estudiantes',
-                    'url' => '',
-                    'icon' => 'fas fa-user-graduate',
-                ],
-                [
-                    'text' => 'Asistencias',
-                    'url' => '',
-                    'icon' => 'fas fa-chalkboard-teacher',
-                ],
-                [
-                    'text' => 'Notas',
-                    'url' => '',
-                    'icon' => 'fas fa-chalkboard-teacher',
-                ],
+        ],
+        [
+            'text' => 'Alertas',
+            'url' => 'profesor/alertas',
+            'icon' => 'fas fa-bell', // Icono de campana para alertas
+            'can'  => 'profesor.alertas.index',
+        ],
+        [
+            'text' => 'Calendario académico',
+            'url' => 'profesor/calendario',
+            'icon' => 'fas fa-calendar-alt',
+            'can'  => 'profesor.calendario.index',
+        ],
+        [
+            'header' => 'Estudiante',
+            'can'  => 'estudiante.contenidos.index',
+        ],
+        [
+            'text' => 'Contenido',
+            'url' => 'estudiante/contenidos',
+            'icon' => 'fas fa-book', // Icono de campana para alertas
+            'can'  => 'estudiante.contenidos.index',
+        ],
 
-            ],
+        [
+            'text' => 'Alertas',
+            'url' => 'tutores/alertas',
+            'icon' => 'fas fa-bell', // Icono de campana para alertas
+            'can'  => 'tutores.alertas.index',
+        ],
+        [
+            'text' => 'Calendario',
+            'url' => 'tutores/calendario',
+            'icon' => 'fas fa-calendar-alt',
+            'can'  => 'tutores.calendario.index',
         ],
     ],
     /*

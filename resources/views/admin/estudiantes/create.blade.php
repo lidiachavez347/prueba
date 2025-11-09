@@ -4,7 +4,8 @@
 @section('content')
 <br>
 <div class="row" style="margin: center">
-    <div class="col">
+    <div class="col-2"></div>
+    <div class="col-8">
         <div class="card">
             <div class="card-header">
                 <div class="left">Estudiante</div>
@@ -16,23 +17,23 @@
                 <div class="row">
                     <div class="col">
                         <div class="form-group">
-                            {!! Form::label('rude', 'RUDE:') !!}
-                            {!! Form::number('rude', null, ['class' => 'form-control', 'placeholder' => 'Rude']) !!}
-                            @error('rude') <span class="text-danger">{{ $message }}</span> @enderror
+                            {!! Form::label('rude_es', 'RUDE:') !!}
+                            {!! Form::number('rude_es', null, ['class' => 'form-control', 'placeholder' => 'Rude']) !!}
+                            @error('rude_es') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="col">
                         <div class="form-group">
-                            {!! Form::label('ci', 'CI: ') !!}
-                            {!! Form::number('ci', null, ['class' => 'form-control', 'placeholder' => 'Cedula de identidad']) !!}
-                            @error('ci') <span class="text-danger">{{ $message }}</span> @enderror
+                            {!! Form::label('ci_es', 'CI: ') !!}
+                            {!! Form::number('ci_es', null, ['class' => 'form-control', 'placeholder' => 'Cedula de identidad']) !!}
+                            @error('ci_es') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="col">
                         <div class="form-group">
-                            {!! Form::label('fecha_nacimiento', 'Fecha Nacimiento:') !!}
-                            {!! Form::date('fecha_nacimiento', null, ['class' => 'form-control', 'placeholder' => 'Fecha']) !!}
-                            @error('fecha_nacimiento') <span class="text-danger">{{ $message }}</span> @enderror
+                            {!! Form::label('fecha_nac_es', 'Fecha Nacimiento:') !!}
+                            {!! Form::date('fecha_nac_es', null, ['class' => 'form-control', 'placeholder' => 'Fecha']) !!}
+                            @error('fecha_nac_es') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>
@@ -40,23 +41,23 @@
                 <div class="row">
                     <div class="col">
                         <div class="form-group">
-                            {!! Form::label('nombres', 'Nombres:') !!}
-                            {!! Form::text('nombres', null, ['class' => 'form-control', 'placeholder' => 'Nombre Completo del Usuario']) !!}
-                            @error('nombres') <span class="text-danger">{{ $message }}</span> @enderror
+                            {!! Form::label('nombres_es', 'Nombres:') !!}
+                            {!! Form::text('nombres_es', null, ['class' => 'form-control', 'placeholder' => 'Nombre Completo del Usuario']) !!}
+                            @error('nombres_es') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="col">
                         <div class="form-group">
-                            {!! Form::label('apellidos', 'Apellidos:') !!}
-                            {!! Form::text('apellidos', null, ['class' => 'form-control', 'placeholder' => 'Apellido Completo del Usuario']) !!}
-                            @error('apellidos') <span class="text-danger">{{ $message }}</span> @enderror
+                            {!! Form::label('apellidos_es', 'Apellidos:') !!}
+                            {!! Form::text('apellidos_es', null, ['class' => 'form-control', 'placeholder' => 'Apellido Completo del Usuario']) !!}
+                            @error('apellidos_es') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="col">
                         <div class="form-group">
-                            {!! Form::label('genero', 'Genero:') !!}
-                            {!! Form::select('genero', [null => 'SELECCIONE GENERO', '1' => ' MASCULINO', '0' => 'FEMENINO'], null, ['class' => 'form-control']) !!}
-                            @error('genero') <span class="text-danger">{{ $message }}</span> @enderror
+                            {!! Form::label('genero_es', 'Genero:') !!}
+                            {!! Form::select('genero_es', [null => 'SELECCIONE GENERO', '1' => ' MASCULINO', '0' => 'FEMENINO'], null, ['class' => 'form-control']) !!}
+                            @error('genero_es') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>
@@ -69,9 +70,10 @@
                             </div>
                         </center>
                         <div class="form-group">
-                            {!! Form::label('imagen', 'Subir Imagen') !!}
-                            {!! Form::file('imagen', ['class' => 'form-control']) !!}
+                            {!! Form::label('imagen_es', 'Subir Imagen') !!}
+                            {!! Form::file('imagen_es', ['class' => 'form-control']) !!}
                         </div>
+                        <button type="button" id="eliminar-imagen" class="btn btn-danger btn-sm d-none">Eliminar</button>
                     </div>
                     <div class="col">
                         <div class="form-group">
@@ -83,21 +85,12 @@
                         </div>
 
                     </div>
-                </div>
 
-                <div class="row">
                     <div class="col">
                         <div class="form-group">
-                            {!! Form::label('direccion', 'Direccion:') !!}
-                            <textarea placeholder="Direccion del Usuario" class="form-control" name="direccion" rows="3" style="resize: none;"></textarea>
-                            @error('direccion') <span class="text-danger">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-group">
-                            {!! Form::label('estado', 'Estado:') !!}
-                            {!! Form::select('estado', [null => 'SELECCIONE ESTADO', '0' => 'NO ACTIVO', '1' => 'ACTIVO'], null, ['class' => 'form-control']) !!}
-                            @error('estado') <span class="text-danger">{{ $message }}</span> @enderror
+                            {!! Form::label('estado_es', 'Estado:') !!}
+                            {!! Form::select('estado_es', [null => 'SELECCIONE ESTADO', '0' => 'NO ACTIVO', '1' => 'ACTIVO'], null, ['class' => 'form-control']) !!}
+                            @error('estado_es') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>
@@ -106,7 +99,7 @@
 
                 <div class="card-header">
                     <div class="left"><b>Tutor</b></div>
-                    <div class="right">
+                    <div class="right" hidden>
                         <a href="javascript:;" class="btn btn-dark btnAddMore"><i class="fa fa-plus-circle" aria-hidden="true"></i> Nuevo</a>
                     </div>
                 </div>
@@ -117,60 +110,76 @@
                             <div class="col">
                                 <div class="form-group">
 
-                                    <label class="control-label" id="nombres_tutor">Nombres:</label>
-                                    <input class="form-control" name="nombres_tutor[]" type="text" id="nombres_tutor_0" onkeyup="searchTutor(0)" placeholder="Nombre del tutor">
-                                    <div id="tutorSuggestions_0" class="suggestions-box" style="display:none;"></div>
 
-                                    @error('nombres_tutor') <span class="text-danger">{{ $message }}</span> @enderror
+                                    <label for="nombres_0"> Tutor:</label>
+                                    <!-- Campo para buscar el nombre del tutor -->
+                                    <input type="text" id="nombres_0" name="nombres" class="form-control" onkeyup="searchTutor(0)" placeholder="Ingrese nombre del tutor" autocomplete="off">
+
+                                    <!-- Contenedor de sugerencias -->
+                                    <div id="tutorSuggestions_0" class="autocomplete-suggestions" style="display:none;"></div>
+
+                                    @error('nombres') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
-
                             </div>
-
                             <div class="col">
                                 <div class="form-group">
 
-                                    <label class="control-label" id="apellidos_tutor">Apellidos:</label>
-                                    <input class="form-control" type="text" name="apellidos_tutor[]" id="apellidos_tutor_0" placeholder="Apellido completo del Tutor">
-                                    @error('apellidos_tutor') <span class="text-danger">{{ $message }}</span> @enderror
+                                    <label class="control-label" id="apellidos">Apellidos:</label>
+                                    <input class="form-control" type="text" name="apellidos" id="apellidos_0" placeholder="Apellido completo del Tutor">
+                                    @error('apellidos') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
-                            <div class="col-2">
 
-                                <div class="form-group">
-
-                                    <label class="control-label" id="relacion">Parentezco:</label>
-                                    <select class="form-control" name="relacion[]" id="relacion_0" onchange="checkOtherRelation(0)">
-                                        <option value="">Seleccione Parentezco</option>
-                                        <option value="Padre">Padre</option>
-                                        <option value="Madre">Madre</option>
-                                        <option value="Tio">Tío</option>
-                                        <option value="Otro">Otro</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row" id="otherRelationDiv_0" style="display:none;">
-                            <div class="col">
-                                <div class="form-group">
-
-                                    <label class="control-label" id="relacion_otro">Especificar Parentezco:</label>
-                                    <input class="form-control" type="text" name="relacion_otro[]" id="relacion_otro_0" placeholder="Especificar relación">
-                                </div>
-                            </div>
                         </div>
                         <div class="row">
-                            <!-- <div class="col">
+                            <div class="col">
+                                <div class="form-group">
+                                    {!! Form::label('fecha_nac', 'Fecha Nacimiento:') !!}
+                                    <input type="date" id="fecha_nac_0" name="fecha_nac" class="form-control" placeholder="Fecha de Nacimiento">
+                                    @error('fecha_nac') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    {!! Form::label('ci', 'CI: ') !!}
+                                    <input type="text" id="ci_0" name="ci" class="form-control" placeholder="CI">
+                                    @error('ci') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form group">
+                                    {!! Form::label('email', 'Email:') !!}
+                                    {!! Form::email('email', null, ['class' => 'form-control', 'placeholder' => 'Email','id'=>'email_0']) !!}
+                                    @error('email')
+                                    <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form group">
+                                    {!! Form::label('password', 'Contraseña: ') !!}
+                                    {!! Form::password('password', ['class' => 'form-control', 'placeholder' => 'Password']) !!}
+                                    @error('password')
+                                    <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
                                 <div class="form-group">
                                     {!! Form::label('direccion', 'Direccion:') !!}
-                                    <textarea placeholder="Direccion del Usuario" class="form-control" name="direccion[]" rows="3" style="resize: none;"></textarea>
+                                    <textarea placeholder="Direccion del Usuario" class="form-control" name="direccion" rows="3" style="resize: none;" id="direccion_0"></textarea>
                                     @error('direccion') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
-                        </div>-->
-                            <div class="col-3">
+                            </div>
+ 
+                            <div class="col">
                                 <div class="form-group">
 
                                     <label class="control-label" id="telefono">Teléfono</label>
-                                    <input class="form-control" type="tel" name="telefono[]" id="telefono_0" placeholder="Numero de telefono">
+                                    <input class="form-control" type="tel" name="telefono" id="telefono_0" placeholder="Numero de telefono">
                                     @error('telefono') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
@@ -185,21 +194,29 @@
                                 </center>
 
                                 <div class="form-group">
-                                    <label class="control-label" for="imagen_tutor_0">Subir Imagen</label>
-                                    <div id="nombre_imagen_tutor_0"></div>
+                                    <label class="control-label" for="imagen_0">Subir Imagen</label>
+                                    <div id="nombre_imagen_0"></div>
 
-                                    <input type="file" id="imagen_tutor_0" name="imagen_tutor[]"  multiple accept="image/*" class="form-control">
+                                    <input type="file" id="imagen_0" name="imagen" multiple accept="image/*" class="form-control">
+                                </div>
+                                <button type="button" id="eliminar-i" class="btn btn-danger btn-sm d-none">Eliminar</button>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    {!! Form::label('genero', 'Genero:') !!}
+                                    {!! Form::select('genero', [null => 'SELECCIONE GENERO', '1' => ' MASCULINO', '0' => 'FEMENINO'], null, ['class' => 'form-control','id'=>'genero_0']) !!}
+                                    @error('genero') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
                             <div class="col">
                                 <div class="form-group">
 
                                     <label class="control-label">Estado</label>
-                                    <select name="estado_tutor[]" class="form-control" id="estado_0">
+                                    <select name="estado_user" class="form-control" id="estado_0">
                                         <option value="0">NO ACTIVO</option>
                                         <option value="1">ACTIVO</option>
                                     </select>
-                                    @error('estado_tutor') <span class="text-danger">{{ $message }}</span> @enderror
+                                    @error('estado_user') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>
                             </div>
                         </div>
@@ -215,9 +232,6 @@
                     <button type="submit" class="btn btn-success btn-sm" aria-label="eliminar" data-toggle="tooltip" data-placement="top" title="Guardar">
                         <i class="fa fa-check"></i> Guardar
                     </button>
-                    <center>
-                        {!! Form::submit('Guardar Respuesta', ['class' => 'btn btn-dark']) !!}
-                    </center>
                 </center>
             </div>
             {!! Form::close() !!}
@@ -238,18 +252,18 @@
         width: 10%;
     }
 
-    .suggestions-box {
-        position: absolute;
-        background-color: white;
-        border: 1px solid #ccc;
+    .autocomplete-suggestions {
+        border: 1px solid #ddd;
         max-height: 200px;
         overflow-y: auto;
+        background: #fff;
+        position: absolute;
         width: 100%;
-        z-index: 9999;
+        z-index: 1000;
     }
 
     .suggestion-item {
-        padding: 10px;
+        padding: 8px;
         cursor: pointer;
     }
 
@@ -262,98 +276,155 @@
 @stop
 
 @section('js')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    // Función para buscar y autocompletar los campos del tutor
+    // Función para buscar y mostrar sugerencias
     function searchTutor(contador) {
-        let nombre_tutor = document.getElementById('nombres_tutor_' + contador).value;
+        let query = $('#nombres_0').val().trim(); // Obtener la consulta de búsqueda
 
-        // Mostrar el cuadro de sugerencias solo si el nombre tiene más de 2 caracteres.
-        if (nombre_tutor.length > 2) {
+        // Realizar la búsqueda solo si hay más de 2 caracteres
+        if (query.length > 2) {
             $.ajax({
-                url: '/search-tutor', // La ruta de búsqueda
+                url: "{{ route('autocomplete') }}", // Ruta a la que se hará la solicitud AJAX
                 type: 'GET',
                 data: {
-                    nombre_tutor: nombre_tutor
-                },
+                    query: query
+                }, // Enviar la consulta de búsqueda
                 success: function(response) {
-                    if (response && response.length > 0) {
-                        // Mostrar las sugerencias
-                        let suggestions = '';
+                    console.log(response); // Verifica la respuesta en la consola
+
+                    let suggestions = '';
+                    if (response.length > 0) {
                         response.forEach(tutor => {
                             suggestions += `
-                            <div class="suggestion-item" 
+                                <div class="suggestion-item" 
                                 data-id="${tutor.id}" 
-                                data-nombres="${tutor.nombres_tutor}" 
-                                data-apellidos="${tutor.apellidos_tutor}" 
+                                data-nombres="${tutor.nombres}" 
+                                data-apellidos="${tutor.apellidos}" 
+                                data-estado="${tutor.estado_user}" 
+                                data-genero="${tutor.genero}" 
                                 data-telefono="${tutor.telefono}" 
-                                data-relacion="${tutor.relacion}"
-                                data-estado="${tutor.estado_tutor}"
-                                data-imagen="${tutor.imagen_tutor}">
-                                ${tutor.nombres_tutor} ${tutor.apellidos_tutor}
-                            </div>
-                        `;
+                                data-direccion="${tutor.direccion}" 
+                                data-ci="${tutor.ci}" 
+                                data-fecha_nac="${tutor.fecha_nac}"
+                                data-email="${tutor.email}"
+                                data-password="${tutor.password}" 
+                                data-imagen="${tutor.imagen}">
+                                ${tutor.nombres} ${tutor.apellidos}
+                                </div>`;
                         });
                         $('#tutorSuggestions_' + contador).html(suggestions).show();
                     } else {
-                        $('#tutorSuggestions_' + contador).hide();
+                        $('#tutorSuggestions_' + contador).hide(); // Ocultar si no hay resultados
                     }
                 },
-                error: function(error) {
-                    console.log('Error en la búsqueda');
+                error: function() {
+                    console.error('Error en la búsqueda');
+                    $('#tutorSuggestions_' + contador).hide();
                 }
             });
         } else {
-            $('#tutorSuggestions_' + contador).hide(); // Si no hay suficientes caracteres, ocultar las sugerencias.
+            $('#tutorSuggestions_' + contador).hide(); // Ocultar si no hay suficientes caracteres
         }
     }
 
-    // Evento de selección de una sugerencia
+    // Evento para seleccionar una sugerencia y autocompletar campos
     $(document).on('click', '.suggestion-item', function() {
-        const id = $(this).data('id');
         const nombres = $(this).data('nombres');
         const apellidos = $(this).data('apellidos');
-        const telefono = $(this).data('telefono');
-        const relacion = $(this).data('relacion');
         const estado = $(this).data('estado');
+        const genero = $(this).data('genero');
         const imagen = $(this).data('imagen');
+        const telefono = $(this).data('telefono');
+        const direccion = $(this).data('direccion');
+        const ci = $(this).data('ci');
+        const fecha_nac = $(this).data('fecha_nac');
+        const email = $(this).data('email');
+        const password = $(this).data('password');
 
-        // Autocompletar los campos con la información seleccionada
-        $('#nombres_tutor_0').val(nombres);
-        $('#apellidos_tutor_0').val(apellidos);
-        $('#telefono_0').val(telefono);
-        $('#relacion_0').val(relacion);
-        $('#estado_0').val(estado);
+        // Autocompletar los campos
+        $('#nombres_0').val(`${nombres}`);
+        $('#apellidos_0').val(`${apellidos}`);
+        $('#estado_0').val(`${estado}`);
+        $('#genero_0').val(`${genero}`);
+        $('#telefono_0').val(`${telefono}`);
+        $('#direccion_0').val(`${direccion}`);
+        $('#ci_0').val(`${ci}`);
+        $('#fecha_nac_0').val(`${fecha_nac}`);
+        $('#password_0').val(`${password}`);
+        $('#email_0').val(`${email}`);
 
-        // Si hay una imagen asociada, mostrarla
+        // Mostrar la imagen si existe
         if (imagen) {
             $('#seleccionada_0').attr('src', '/images/' + imagen);
-            $('#nombre_imagen_tutor_0').text(imagen);
+        } else {
+            $('#seleccionada_0').attr('src', '/images/default.png'); // Imagen por defecto en caso de que no haya
         }
 
-        // Ocultar las sugerencias después de seleccionar una
+        // Ocultar las sugerencias después de seleccionar
         $('#tutorSuggestions_0').hide();
     });
-
-
-
-
-
-    // document.getElementById('miFormulario').onsubmit = function() {
-    //  this.reset();
-    ///};
 </script>
+
 
 <script>
     $(document).ready(function(e) {
-        $('#imagen').change(function() {
+        // Cuando se elige una imagen
+        $('#imagen_es').change(function() {
             let reader = new FileReader();
             reader.onload = (e) => {
+                // Mostrar la imagen seleccionada
                 $('#imagenseleccionada').attr('src', e.target.result);
+
+                // Mostrar el botón de eliminar imagen
+                $('#eliminar-imagen').removeClass('d-none');
             }
             reader.readAsDataURL(this.files[0]);
         });
+
+        // Cuando se haga clic en el botón de eliminar
+        $('#eliminar-imagen').click(function() {
+            // Eliminar la imagen cargada
+            $('#imagenseleccionada').attr('src', ''); // Restaurar el área de imagen a vacío
+
+            // Ocultar el botón de eliminar
+            $(this).addClass('d-none');
+
+            // Eliminar la imagen del campo de entrada (input)
+            $('#imagen_es').val('');
+        });
     });
+
+
+    $(document).ready(function(e) {
+        // Cuando se elige una imagen
+        $('#imagen_0').change(function() {
+            let reader = new FileReader();
+            reader.onload = (e) => {
+                // Mostrar la imagen seleccionada
+                $('#seleccionada_0').attr('src', e.target.result);
+
+                // Mostrar el botón de eliminar imagen
+                $('#eliminar-i').removeClass('d-none');
+            }
+            reader.readAsDataURL(this.files[0]);
+        });
+
+        // Cuando se haga clic en el botón de eliminar
+        $('#eliminar-i').click(function() {
+            // Eliminar la imagen cargada
+            $('#seleccionada_0').attr('src', ''); // Restaurar el área de imagen a vacío
+
+            // Ocultar el botón de eliminar
+            $(this).addClass('d-none');
+
+            // Eliminar la imagen del campo de entrada (input)
+            $('#imagen_0').val('');
+        });
+    });
+
+
 </script>
 
 <script>
@@ -408,18 +479,7 @@
                             <input class="form-control" type="text" name="apellidos_tutor[]" id="apellidos_tutor_${contador}" placeholder="Apellido completo del Tutor" required>
                         </div>
                     </div>
-                    <div class="col-2">
-                        <div class="form-group">
-                            <label class="control-label">Parentezco</label>
-                            <select class="form-control" name="relacion[]" id="relacion_${contador}" >
-                                <option value="">Seleccione Parentezco</option>
-                                <option value="Padre">Padre</option>
-                                <option value="Madre">Madre</option>
-                                <option value="Tio">Tío</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-                        </div>
-                    </div>
+
                 </div>
 
                 
@@ -475,7 +535,7 @@
         $('#ck_' + contador).remove(); // Eliminar el tutor con el id correspondiente
     }
 
-    
+
     // Función para manejar la lógica de mostrar el campo "Otro"
     //onchange="checkOtherRelation(${contador})"
     /* <div class="row" id="otherRelationDiv_${contador}" style="display:none;">
@@ -486,17 +546,17 @@
                         </div>
                     </div>
                 </div>*/
-/* function checkOtherRelation(contador) {
-        var select = document.getElementById("relacion_" + contador);
-        var otherDiv = document.getElementById("otherRelationDiv_" + contador);
+    /* function checkOtherRelation(contador) {
+            var select = document.getElementById("relacion_" + contador);
+            var otherDiv = document.getElementById("otherRelationDiv_" + contador);
 
-        // Si se selecciona "Otro", mostrar el campo de texto
-        if (select.value === "Otro") {
-            otherDiv.style.display = "block";
-        } else {
-            otherDiv.style.display = "none";
-        }
-    }*/
+            // Si se selecciona "Otro", mostrar el campo de texto
+            if (select.value === "Otro") {
+                otherDiv.style.display = "block";
+            } else {
+                otherDiv.style.display = "none";
+            }
+        }*/
 </script>
 
 @stop

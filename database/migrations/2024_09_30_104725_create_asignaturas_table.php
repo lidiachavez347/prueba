@@ -14,17 +14,23 @@ return new class extends Migration
     {
         Schema::create('asignaturas', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre_asignatura');
-            $table->integer('estado_asignatura');
+            $table->string('nombre_asig');
+            $table->boolean('estado_asig')->default(1);
+            $table->unsignedBigInteger('id_area');
+            $table->foreign('id_area')->references('id')->on('areas')->onDelete('cascade');
+
             $table->timestamps();
         });
         DB::table('asignaturas')->insert([
-            ['nombre_asignatura' => 'Lenguaje','estado_asignatura'=> 1],
-            ['nombre_asignatura' => 'Matematica','estado_asignatura'=> 1],
-            ['nombre_asignatura' => 'Sociales','estado_asignatura'=> 1],
-            ['nombre_asignatura' => 'Biologia','estado_asignatura'=> 1],
-            
-
+            ['nombre_asig' => 'CIENCIAS NATURALES', 'estado_asig' => 1, 'id_area' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_asig' => 'LENGUAJE Y COMUNICACION', 'estado_asig' => 1, 'id_area' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_asig' => 'CIENCIAS SOCIALES', 'estado_asig' => 1, 'id_area' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_asig' => 'ARTES PLASTICAS Y VISUALES', 'estado_asig' => 1, 'id_area' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_asig' => 'EDUCACION FISICA Y DEPORTES', 'estado_asig' => 1, 'id_area' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_asig' => 'EDUCACION MUSICAL', 'estado_asig' => 1, 'id_area' => 2, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_asig' => 'MATEMATICA', 'estado_asig' => 1, 'id_area' => 3, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_asig' => 'TECNICA TECNOLOGICA', 'estado_asig' => 1, 'id_area' => 3, 'created_at' => now(), 'updated_at' => now()],
+            ['nombre_asig' => 'VALORES ESPIRITUALIDAD Y RELIGION', 'estado_asig' => 1, 'id_area' => 4, 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 

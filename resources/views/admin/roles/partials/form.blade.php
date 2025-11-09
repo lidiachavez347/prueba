@@ -7,12 +7,8 @@
     </small>
     @enderror
 </div>
-
 <div class="row">
- 
     <div class="col-4">
-
-
         <div class="form group">
             {!! Form::label('estado', 'Estado:') !!}
             {!! Form::select('estado',[null => 'SELECCIONE ESTADO','0' => 'NO ACTIVO', '1' => 'ACTIVO'], null, [
@@ -24,19 +20,13 @@
         </div>
     </div>
 </div>
-
-
-
 <br>
-
 <div class="col">
     <div class="card">
         <div class="card-header">
             <h2 class="h3">Permisos</h2>
         </div>
         <div class="card-body">
-
-
             @foreach ($permissions as $permission)
             <div>
                 <label>
@@ -45,8 +35,6 @@
                 </label>
             </div>
             @endforeach
-            
         </div>
-
     </div>
 </div>

@@ -1,81 +1,74 @@
 @extends('adminlte::page')
-@section('title', 'Edital Asignatura')
-
-
+@section('title', 'Editar Asignación')
 @section('content')
 <br>
-<div class="row" style="margin: center">
-    <div class="col-3">
-    </div>
+<div class="row">
+    <div class="col-3"></div>
     <div class="col-6">
         <div class="card">
             <div class="card-header">
-                <div class="left">Asignatura</div>
-                <div class="right"><b>Editar</b></div>
+                <div class="left">Editar Asignación</div>
+                <div class="right"><b>Actualizar</b></div>
             </div>
-                {!! Form::model($asignatura, [
-                    'route' => ['admin.asignaturas.update', $asignatura],
-                    'method' => 'put',
-                    'enctype' => 'multipart/form-data',
-                ]) !!}
+            <form action="{{ route('admin.asignaturas.update', $profesorAsignado->id) }}" method="POST">
                 @csrf
+                @method('PUT')
                 <div class="card-body">
-                    <div class="form group">
-                        {!! Form::label('nombre_asignatura', 'Materia:') !!}
-                        {!! Form::text('nombre_asignatura', null, ['class' => 'form-control', 'placeholder' => 'Materia']) !!}
-                        @error('nombre_asignatura')
-                            <span class="text-danger">{{ $message }}</span>
-                        @enderror
+                    <div class="form-group">
+                        <label>Profesor:</label>
+                        <select name="id_profesor" class="form-control" disabled>
+                            @foreach($profesores as $profesor)
+                                <option value="{{ $profesor->id }}" 
+                                    {{ $profesorAsignado->id == $profesor->id ? 'selected' : '' }}>
+                                    {{ $profesor->nombres }} {{ $profesor->apellidos }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="form group">
-                        {!! Form::label('estado_asignatura', 'Estado:') !!}
-                        {!! Form::select(
-                            'estado_asignatura',
-                            [null => 'SELECCIONE ESTADO', '0' => ' NO DISPONIBLE', '1' => 'DISPONIBLE'],
-                            null,
-                            [
-                                'class' => 'form-control',
-                            ],
-                        ) !!}
-                        @error('estado_asignatura')
-                            <span class="text-danger">{{ $message }}</span>
-                        @enderror
+                    <div class="form-group">
+                        <label>Seleccionar Curso:</label>
+                        <select name="id_curso" class="form-control">
+                            @foreach($cursos as $curso)
+                                <option value="{{ $curso->id }}" 
+                                    {{ $curso->id == $profesorAsignado->curso_id ? 'selected' : '' }}>
+                                    {{ $curso->nombre_curso }} - {{ $curso->paralelo }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Seleccionar Nivel:</label>
+                        <select name="id_nivel" class="form-control">
+                            @foreach($niveles as $nivel)
+                                <option value="{{ $nivel->id }}" 
+                                    {{ $nivel->id == $profesorAsignado->nivel_id ? 'selected' : '' }}>
+                                    {{ $nivel->nivel }} - {{ $nivel->turno }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Asignaturas:</label><br>
+                        @foreach($asignaturas as $asignatura)
+                            <input type="checkbox" name="asignaturas[]" value="{{ $asignatura->id }}" 
+                                {{ in_array($asignatura->id, $asignacionesActuales) ? 'checked' : '' }}>
+                            {{ $asignatura->nombre_asig }}<br>
+                        @endforeach
                     </div>
                 </div>
-                <div class="card-footer ">
-                <center>
-                    <a class='btn btn-danger  btn-sm href' href="{{ route('admin.asignaturas.index') }}" data-toggle="tooltip" data-placement="top" title="Cancelar">
+                <div class="card-footer text-center">
+                    <a href="{{ route('admin.asignaturas.index') }}" class="btn btn-danger btn-sm">
                         <i class="fa fa-arrow-left"></i> Cancelar
                     </a>
-
-                    <button type="submit" class="btn btn-success btn-sm" aria-label="guardar" data-toggle="tooltip" data-placement="top" title="Guardar">
-                        <i class="fa fa-check"></i> Guardar
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="fa fa-check"></i> Guardar Cambios
                     </button>
-                </center>
-            </div>
-                {!! Form::close() !!}
-            </div>
+                </div>
+            </form>
         </div>
     </div>
-@stop
-@section('css')
-<style>
-    .left {
-        float: left;
-        width: 50%;
-        /* Ajusta el ancho si es necesario */
-
-    }
-
-    .right {
-        float: right;
-        width: 10%;
-        /* Ajusta el ancho si es necesario */
-
-    }
-</style>
-<link rel="stylesheet" href="/css/admin_custom.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-    integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+</div>
 @stop

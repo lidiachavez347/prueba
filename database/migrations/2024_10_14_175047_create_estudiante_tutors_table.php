@@ -18,8 +18,8 @@ return new class extends Migration
             $table->foreign('id_estudiante')->references('id')->on('estudiantes')->onDelete('cascade');
 
             $table->unsignedBigInteger('id_tutor');
-            $table->foreign('id_tutor')->references('id')->on('tutores')->onDelete('cascade');
-            
+            $table->foreign('id_tutor')->references('id')->on('users')->onDelete('cascade');
+
             $table->timestamps();
         });
     }

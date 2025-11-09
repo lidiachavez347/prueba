@@ -7,6 +7,10 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Mail\SendCredentialsMail;
 
 class RoleSeeder extends Seeder
 {
@@ -15,104 +19,104 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $role1 = Role::create(['name' => 'Admin', 'estado' => 1]);
-        $role2 = Role::create(['name' => 'Director', 'estado' => 1]);
-        $role3 = Role::create(['name' => 'Secretaria', 'estado' => 1]);
-        $role4 = Role::create(['name' => 'Profesor', 'estado' => 1]);
-//administrador
+        $role1 = Role::create(['name' => 'ADMIN', 'estado' => 1]);
+        $role2 = Role::create(['name' => 'PROFESOR', 'estado' => 1]);
+        $role3 = Role::create(['name' => 'TUTOR', 'estado' => 1]);
+        $role4 = Role::create(['name' => 'SECRETARIA', 'estado' => 1]);
+        //administrador
         Permission::create([
             'name' => 'admin.usuarios.index',
-            'description' => 'Listado de Usuarios vista Admin'
+            'description' => 'Usuarios'
         ])->syncRoles([$role1]);
 
         Permission::create([
             'name' => 'admin.roles.index',
-            'description' => 'Listado de Roles vista Admin'
+            'description' => 'Roles'
         ])->syncRoles([$role1]);
 
         Permission::create([
             'name' => 'admin.permisos.index',
-            'description' => 'Listado de Permisos vista Admin'
+            'description' => 'Permisos'
+        ])->syncRoles([$role1]);
+
+        Permission::create([
+            'name' => 'admin.config.index',
+            'description' => 'Configuracion'
+        ])->syncRoles([$role1]);
+
+        Permission::create([
+            'name' => 'admin.grados.index',
+            'description' => 'Grados'
+        ])->syncRoles([$role1]);
+        Permission::create([
+            'name' => 'admin.materias.index',
+            'description' => 'Materias'
+        ])->syncRoles([$role1]);
+
+        Permission::create([
+            'name' => 'admin.estudiantes.index',
+            'description' => 'Estudiantes'
+        ])->syncRoles([$role1]);
+
+        Permission::create([
+            'name' => 'admin.tutores.index',
+            'description' => 'Tutores'
         ])->syncRoles([$role1]);
 
         Permission::create([
             'name' => 'admin.profesores.index',
-            'description' => 'Listado de Profesores vista Admin'
+            'description' => 'Profesores'
         ])->syncRoles([$role1]);
-
-        Permission::create([
-            'name' => 'admin.notas.index',
-            'description' => 'Listado de notas vista Admin'
-        ])->syncRoles([$role1]);
-        Permission::create([
-            'name' => 'admin.estudiantes.index',
-            'description' => 'Listado de Estudiantes vista Admin'
-        ])->syncRoles([$role1]);
-        Permission::create([
-            'name' => 'admin.cursos.index',
-            'description' => 'Listado de cursos vista Admin'
-        ])->syncRoles([$role1]);
-
         Permission::create([
             'name' => 'admin.asignaturas.index',
-            'description' => 'Listado de Asignaturas vista Admin'
+            'description' => 'Asignar profesores'
         ])->syncRoles([$role1]);
-        
-
-
-//director
 
         Permission::create([
-            'name' => 'director.cursos.index',
-            'description' => 'Listado cursos vista Director'
-        ])->syncRoles([$role2]);
+            'name' => 'calendario.index',
+            'description' => 'Calendario'
+        ])->syncRoles([$role1, $role2, $role4]);
+
+
+        //profesor
         Permission::create([
-            'name' => 'director.asignaturas.index',
-            'description' => 'Listado asignaturas vista Director'
+            'name' => 'profesor.contenidos.index',
+            'description' => 'Planificacion academica'
         ])->syncRoles([$role2]);
+
         Permission::create([
-            'name' => 'director.profesores.index',
-            'description' => 'Listado profesores vista Director'
+            'name' => 'profesor.asistencias.index',
+            'description' => 'Asistencias'
         ])->syncRoles([$role2]);
-//secretaria
 
-//profesor
+        Permission::create([
+            'name' => 'profesor.estudiantes.index',
+            'description' => 'Listado de estudiantes vista profesor'
+        ])->syncRoles([$role2]);
 
-        User::create([
-            'imagen' => '1727891535.png',
-            'nombres' => 'Administrador',
-            'apellidos' => 'ADMIN',
-            'genero' => 1,
-            'direccion' => 'admin',
-            'estado_user' => 1,
-            'id_rol' => 1,
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('123'),
-        ])->assignRole('Admin');
+        //asignacion de roles a diferentes registros
 
-        User::create([
+        $password1 = Str::random(10);
+        $token1 = Str::uuid();
+
+        $user1 = User::create([
             'imagen' => '1727891609.png',
             'nombres' => 'Rene',
             'apellidos' => 'Burgoa Sanchez',
             'genero' => 1,
-            'direccion' => 'admin',
+            'direccion' => 'Av. San Martín N° 645, Barrio Las Delicias, Yacuiba, Tarija, Bolivia',
             'estado_user' => 1,
-            'id_rol' => 2,
-            'email' => 'reneburgoa@gmail.com',
-            'password' => bcrypt('123'),
-        ])->assignRole('Director');
+            'ci' => 10265847,
+            'telefono' => 76829247,
+            'fecha_nac' => '1961-05-10',
+            'id_rol' => 1,
+            'email' => 'reneburgoasanchez3@gmail.com',
+            'password' => bcrypt($password1),
+            'qr_token' => $token1
+        ]);
+        $user1->assignRole('ADMIN');
 
-        User::create([
-            'imagen' => '1727891624.png',
-            'nombres' => 'Patricia',
-            'apellidos' => 'Pelaez Domingo',
-            'genero' => 0,
-            'direccion' => 'Avenida lomas altas',
-            'estado_user' => 1,
-            'id_rol' => 3,
-            'email' => 'patricia@gmail.com',
-            'password' => bcrypt('123'),
-        ])->assignRole('Secretaria');
-        
+        // Enviar correo
+        Mail::to($user1->email)->send(new SendCredentialsMail($user1, $password1));
     }
 }

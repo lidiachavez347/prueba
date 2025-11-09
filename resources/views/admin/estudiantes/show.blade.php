@@ -1,74 +1,30 @@
-@extends('adminlte::page')
-@section('title', 'Permiso')
-@section('content_header')
 
-
-<div class="container-fluid">
-    <div class="row mb-2">
-        <div class="col-sm-6">
-            <h1 class="m-0">Estudiante: {!! $estudiante->nombres !!} {!! $estudiante->apellidos !!}</h1>
-            <h7>Estado:
-                @if ($estudiante->estado == 1)
-                <span class="badge badge-pill badge-success">ACTIVO</span>
-                @elseif ($estudiante->estado == 0)
-                <span class="badge badge-pill badge-danger">NO ACTIVO</span>
-                @else
-                <span class="badge badge-pill badge-warning">No permitido</span>
-                @endif
-            </h7>
-        </div>
-        <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item">
-                    <a href="#">Home</a>
-                </li>
-                <li class="breadcrumb-item active">Estudiante</li>
-            </ol>
-        </div>
-    </div>
-</div>
-@stop
-
-@section('content')
-<br>
-
-<div class="row">
-    <div class="col-2">
-    </div>
-    <div class="col-8">
-        <div class="card">
-            <div class="card-header">
-                <div class="left">Estudiante</div>
-                <div class="right"><b>Detalle</b></div>
-            </div>
-
-            <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
                         <strong>RUDE:</strong>
-                        <p>{{ $estudiante->rude }}</p>
+                        <p>{{ $estudiante->rude_es }}</p>
                     </div>
                     <div class="col-md-6">
                         <strong>CI:</strong>
-                        <p>{{ $estudiante->ci }}</p>
+                        <p>{{ $estudiante->ci_es }}</p>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6">
                         <strong>Nombre Completo:</strong>
-                        <p>{{ $estudiante->nombres }} {{ $estudiante->apellidos }}</p>
+                        <p>{{ $estudiante->nombres_es }} {{ $estudiante->apellidos_es }}</p>
                     </div>
                     <div class="col-md-6">
                         <strong>Fecha de Nacimiento:</strong>
-                        <p>{{ \Carbon\Carbon::parse($estudiante->fecha_nacimiento)->isoFormat('D [de] MMMM [de] YYYY') }}</p>
+                        <p>{{ \Carbon\Carbon::parse($estudiante->fecha_nac_es)->isoFormat('D [de] MMMM [de] YYYY') }}</p>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6">
                         <strong>Género:</strong>
-                        <p>{{ $estudiante->genero == '1' ? 'Masculino' : 'Femenino' }}</p>
+                        <p>{{ $estudiante->genero_es == '1' ? 'Masculino' : 'Femenino' }}</p>
                     </div>
                     <div class="col-md-6">
                         <strong>Curso:</strong>
@@ -78,13 +34,17 @@
 
                 <div class="row">
                     <div class="col-md-6">
-                        <strong>Dirección:</strong>
-                        <p>{{ $estudiante->direccion }}</p>
+                    <strong>Estado:</strong>
+                   
+                    <span class="badge badge-{{ $grado->estado_es ? 'success' : 'danger' }}">
+                        {{ $grado->estado_es ? 'ACTIVO' : 'NO ACTIVO' }}
+                    </span>
+           
                     </div>
                     <div class="col-md-6">
                         <strong>Imagen:</strong>
-                        @if($estudiante->imagen)
-                        <img src="{{ asset('images/' . $estudiante->imagen) }}" alt="Imagen del Estudiante" style="max-height: 150px;">
+                        @if($estudiante->imagen_es)
+                        <img src="{{ asset('images/' . $estudiante->imagen_es) }}" alt="Imagen del Estudiante" style="max-height: 100px;">
                         @else
                         <p>No se ha subido una imagen</p>
                         @endif
@@ -95,27 +55,26 @@
                 <div class="row">
                     <div class="col-md-12">
                         <h4>Tutores:</h4>
-                        @forelse ($estudiante->tutors as $tutor)
+                        @forelse ($tutores as $tutor)
                         <div class="card mb-3">
                             <div class="row no-gutters">
                                 <div class="col-md-4">
-                                    @if($tutor->imagen_tutor)
-                                    <img src="{{ asset('images/' . $tutor->imagen_tutor) }}" class="card-img" alt="Imagen del Tutor">
+                                    @if($tutor->imagen)
+                                    <img src="{{ asset('images/' . $tutor->imagen) }}" class="card-img" alt="Imagen del Tutor" >
                                     @else
-                                    <img src="{{ asset('images/default.png') }}" class="card-img" alt="Tutor por defecto">
+                                    <img src="{{ asset('images/default.png') }}" class="card-img" alt="Tutor por defecto" >
                                     @endif
                                 </div>
                                 <div class="col-md-8">
                                     <div class="card-body">
-                                        <h5 class="card-title"><strong>Nombre completo : </strong>{{ $tutor->nombres_tutor }} {{ $tutor->apellidos_tutor }}</h5>
+                                        <h5 class="card-title"><strong>Nombre completo : </strong>{{ $tutor->nombres }} {{ $tutor->apellidos }}</h5>
                                         <p class="card-text"><strong>Teléfono:</strong> {{ $tutor->telefono }}</p>
-                                        <p class="card-text"><strong>Relación:</strong> {{ $tutor->relacion }}</p>
+                                        <p class="card-text"><strong>Direccion:</strong> {{ $tutor->direccion }}</p>
                                         <p class="card-text"><strong>Estado:</strong>
-                                            @if ($tutor->estado_tutor == 1)
-                                            <span class="badge badge-success">Activo</span>
-                                            @else
-                                            <span class="badge badge-danger">No Activo</span>
-                                            @endif
+                                            <span class="badge badge-{{ $grado->estado_user ? 'success' : 'danger' }}">
+                                                {{ $grado->estado_user ? 'ACTIVO' : 'NO ACTIVO' }}
+                                            </span>
+           
                                         </p>
                                     </div>
                                 </div>
@@ -128,18 +87,6 @@
                 </div>
 
 
-            </div>
-        </div>
-        <!-- Botón para regresar a la lista de permisos -->
-        <div class="mt-3">
-            <a href="{{ route('admin.estudiantes.index') }}" class="btn btn-secondary">
-                <i class="fa fa-arrow-left"></i> Volver
-            </a>
-        </div>
-
-    </div>
-</div>
-@stop
 
 @section('css')
 <style>

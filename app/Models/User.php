@@ -3,6 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\CustomVerifyEmail;
+use App\Http\Controllers\Admin\ProfesorController;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Role;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -28,11 +31,15 @@ class User extends Authenticatable
         'genero',
         'direccion',
         'estado_user',
+        'ci',
+        'telefono',
+        'fecha_nac',
         'id_rol',
-
         'email',
         'password',
+        'qr_token',
     ];
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -56,23 +63,20 @@ class User extends Authenticatable
 
     public function adminlte_image()
     {
-        $img = Auth::user()->imagen;
+        $img = $this->imagen;
 
         if ($img) {
-            return asset('images/' . $img); // Ruta completa de la imagen
+            return asset('images/' . $img);
         }
 
-        // Retornar una imagen predeterminada si el usuario no tiene una imagen asignada
         return asset('images/usuario.png');
     }
+
     public function adminlte_desc()
     {
-        $nombres = Auth::user()->nombres;
-        $apellidos =  Auth::user()->apellidos;
-
-        return   $nombres . " " . $apellidos . " ";
-        //return "role";
+        return $this->nombres . " " . $this->apellidos;
     }
+
 
     //llave foranea
     public function rol()
@@ -80,22 +84,12 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'id_rol');
     }
 
-    public function profesors()
+    public function asignaciones()
     {
-        return $this->hasMany(Profesore::class, 'id');
+        return $this->hasMany(Profesor_asignatura::class, 'id_profesor');
     }
-    //public function curso()
-    //{
-    //     return $this->belongsTo(Curso::class, 'id_curso');
-    // }
-    ///public function asignatura()
-    // {
-    //    return $this->belongsTo(Asignatura::class, 'id_asignatura');
-    //}
-
-
-    /**public function materia()
+    public function sendEmailVerificationNotification()
     {
-        return $this->hasMany(Materia::class, 'id');
-    }*/
+        $this->notify(new CustomVerifyEmail);
+    }
 }

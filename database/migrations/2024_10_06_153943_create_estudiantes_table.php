@@ -13,16 +13,15 @@ return new class extends Migration
     {
         Schema::create('estudiantes', function (Blueprint $table) {
             $table->id();
-            $table->string('imagen')->nullable(true);
-            $table->string('nombres');
-            $table->string('apellidos');
-            $table->date('fecha_nacimiento');
-            $table->integer('genero');
-            $table->string('direccion');
-            $table->integer('ci');
-            $table->string('rude');
-            $table->integer('estado');
-            
+            $table->string('imagen_es')->nullable(true);
+            $table->string('nombres_es');
+            $table->string('apellidos_es');
+            $table->date('fecha_nac_es');
+            $table->boolean('genero_es')->default(1);
+            $table->string('ci_es', 20);
+            $table->integer('rude_es')->unique();
+            $table->boolean('estado_es')->default(1);
+
             $table->unsignedBigInteger('id_curso');
             $table->foreign('id_curso')->references('id')->on('cursos')->onDelete('cascade');
 

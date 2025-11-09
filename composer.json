@@ -7,14 +7,22 @@
     "require": {
         "php": "^8.1",
         "almasaeed2010/adminlte": "~3.2",
+        "barryvdh/laravel-dompdf": "^3.0",
+        "cloudinary-labs/cloudinary-laravel": "^2.3",
         "guzzlehttp/guzzle": "^7.2",
         "jeroennoten/laravel-adminlte": "^3.13",
         "laravel/framework": "^10.10",
+        "laravel/reverb": "1.0",
         "laravel/sanctum": "^3.3",
+        "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.5",
         "laravelcollective/html": "^6.4",
-        "spatie/laravel-permission": "^6.9"
+        "maatwebsite/excel": "^1.1",
+        "simplesoftwareio/simple-qrcode": "^4.2",
+        "spatie/laravel-permission": "^6.9",
+        "twilio/sdk": "^8.3",
+        "vonage/client": "^4.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

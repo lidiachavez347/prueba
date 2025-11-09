@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Estudiante_tutor extends Model
 {
     use HasFactory;
+    protected $table = 'estudiante_tutors';
     protected $fillable = ['id_estudiante','id_tutor'];
 
     public function estudiante()
@@ -16,6 +17,6 @@ class Estudiante_tutor extends Model
     }
     public function tutors()
     {
-        return $this->belongsTo(Tutor::class, 'id_tutor');
+        return $this->belongsTo(Estudiante_tutor::class, 'id_tutor');
     }
 }

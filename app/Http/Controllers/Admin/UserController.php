@@ -2,6 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Mail;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Models\Curso;
 use App\Models\User;
@@ -10,6 +18,13 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\WithPagination;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Estudiante;
+use Barryvdh\DomPDF\PDF as DomPDFPDF;
+use PDF;
+use App\Http\Controllers\WhatsAppController;
+use App\Mail\SendCredentialsMail;
+
+
 
 class UserController extends Controller
 {
@@ -20,13 +35,22 @@ class UserController extends Controller
     {
         $this->middleware('auth');
     }
+    //GENERAR LA CONTRASEÑA ALEATORIA
+    private function generarPassword($length = 8)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        return substr(str_shuffle($chars), 0, $length);
+    }
+
     public function index()
     {
         if (Auth::user()) {
-            $usuarios = User::with('roles')
-                ->join("roles", "roles.id", "=", "users.id_rol")
-                ->whereIn("roles.name", ['Director', 'Secretaria', 'Admin'])
+            $usuarios = User::with('rol')
+                ->whereHas('rol', function ($query) {
+                    $query->whereIn('name', ['ADMIN', 'SECRETARIA']);
+                })
                 ->get();
+
             return view('admin.usuarios.index', compact('usuarios'));
         } else {
             Auth::logout();
@@ -39,9 +63,13 @@ class UserController extends Controller
      */
     public function create()
     {
-        if (Auth::user()) {
-            $options = Role::where('estado', '=', 1)->whereIn('name', ['Director', 'Secretaria'])->pluck('name', 'id')->toArray();
-            $roles = [null => "SELECCIONE ROL"] + $options;
+        if (Auth::check()) {
+            $options = Role::where('estado', 1)
+                ->whereIn('name', ['ADMIN', 'SECRETARIA'])
+                ->pluck('name', 'id')
+                ->toArray();
+
+            $roles = collect($options)->prepend('SELECCIONE ROL', null)->toArray();
 
             return view('admin.usuarios.create', compact('roles'));
         } else {
@@ -50,31 +78,73 @@ class UserController extends Controller
         }
     }
 
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+        //dd($request->all());
         if (Auth::user()) {
             $request->validate(
                 [
-                    'nombres' => 'required',
-                    'apellidos' => 'required',
+                    'nombres' => 'required|string|max:255',
+                    'apellidos' => 'required|string|max:255',
                     'genero' => 'required',
-                    'direccion' => 'required',
-                    'email' => 'required',
-                    'password' => 'required',
+                    'direccion' => 'required|string|max:255',
+                    'ci' => 'required|string|max:20',
+                    'telefono' => 'required|string|max:15',
+                    'fecha_nac' => 'required|date',
+                    'email' => [
+                        'required',
+                        'email',
+                        'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/i',
+                        'unique:users,email',
+                    ],
                     'estado_user' => 'required',
-
                     'roles' => 'required',
-                    'genero' => 'required',
                     'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-
+                    'password' => 'required|string|min:8',
+                ],
+                [
+                    'nombres.required' => 'El campo nombres es obligatorio.',
+                    'apellidos.required' => 'El campo apellidos es obligatorio.',
+                    'genero.required' => 'Debe seleccionar un género.',
+                    'direccion.required' => 'La dirección es obligatoria.',
+                    'ci.required' => 'El número de cédula es obligatorio.',
+                    'telefono.required' => 'El teléfono es obligatorio.',
+                    'fecha_nac.required' => 'Debe ingresar la fecha de nacimiento.',
+                    'fecha_nac.date' => 'La fecha de nacimiento debe tener un formato válido.',
+                    'email.required' => 'El correo electrónico es obligatorio.',
+                    'email.email' => 'Debe ingresar un correo electrónico válido.',
+                    'email.regex' => 'Solo se permiten correos con dominio @gmail.com.',
+                    'email.unique' => 'Este correo ya está registrado.',
+                    'estado_user.required' => 'Debe seleccionar un estado.',
+                    'roles.required' => 'Debe asignar un rol al usuario.',
+                    'imagen.required' => 'Debe subir una imagen.',
+                    'imagen.image' => 'El archivo debe ser una imagen válida.',
+                    'imagen.mimes' => 'La imagen debe ser de tipo JPEG, PNG, JPG o GIF.',
+                    'imagen.max' => 'La imagen no debe superar los 2 MB.',
                 ]
             );
 
+            //CHEQUEAR EL GMAIL COM MAILBOXLAYER
+            $response = Http::get('https://apilayer.net/api/check', [
+                'access_key' => env('MAILBOXLAYER_KEY'),
+                'email' => $request->email,
+            ]);
+
+            $data = $response->json();
+            //VALIDAR RESPUESTA
+            if (!$data['format_valid'] || !$data['mx_found'] || !$data['smtp_check']) {
+            return back()
+                ->withErrors(['email' => 'El correo ingresado no parece existir o no es válido.'])
+                ->withInput();
+            }
+            //fin verificar el correo
             $prueba = Role::find($request->roles);
 
+            //CREAR USUARIO
             $user = new User();
             $user->nombres = strtoupper($request->nombres);
             $user->apellidos = strtoupper($request->apellidos);
@@ -83,70 +153,152 @@ class UserController extends Controller
             $user->email = $request->email;
             $user->estado_user = $request->estado_user;
 
-            $user->password = Hash::make($request->password);
+            //GENERA CONTRASEÑA
+            //$password = $this->generarPassword(8);
+            $user->password = bcrypt($request->password);
+            //$password1 = $request->password;
             $user->id_rol = $prueba->id;
+            $user->ci = $request->ci;
+            $user->telefono = $request->telefono;
+            $user->fecha_nac = $request->fecha_nac;
 
+            $token = Str::uuid();
+            $user->qr_token = $token;
 
-
+            //GUARDAR IMAGEN EN EL ARCHIVO IMAGEN
             if ($request->hasFile('imagen')) {
                 $imagen = $request->file('imagen');
                 $filename = time() . '.' . $imagen->getClientOriginalExtension();
                 $imagen->move(public_path('images'), $filename);
                 $user->imagen = $filename;
             }
-
-
+            //GUARDAR USUARIO
             $user->save();
-
             $user->roles()->sync($request->roles);
 
-            return redirect()->route('admin.usuarios.index')->with('guardar', 'ok');
+            ///ENVIAR mensaje de verificacion de correo
+            $user->sendEmailVerificationNotification();
+            
+            //eviar correo con las credenciales
+            //Mail::to($user->email)->send(new SendCredentialsMail($user, $password1));
+
+            //ENVIAR MENSAJE POR WHATSAP CON EL QR Y LA CONTRASEÑA
+            $user->password_visible = $request->password;
+            // Generar QR local
+            $fileNameqr = "qr_{$user->id}.png";
+            $qrPath = public_path("qr/{$fileNameqr}");
+            //INICAR SESION CON QR
+            $urlLogin = url("/login/qr/{$token}");
+            QrCode::format('png')->size(300)->generate($urlLogin, $qrPath);
+
+            // Enviar QR por WhatsApp
+            $this->enviarQrWhatsApp($user, $qrPath);
+            //$this->enviarContrasenaWhatsApp($user->telefono, $password);
+
+            return redirect()->route('admin.usuarios.index')
+                ->with('guardar', 'ok')
+                ->with('mensaje', 'Usuario creado correctamente. Se envió un correo de verificación.');
         } else {
             Auth::logout();
             return redirect()->back();
         }
     }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    private function subirQr($qrPath)
     {
-        //
+        $uploadedFile = Cloudinary::upload($qrPath, [
+            'folder' => 'qr_usuarios',
+            'overwrite' => true,
+            'resource_type' => 'image'
+        ]);
+
+        $url = $uploadedFile->getSecurePath(); // URL HTTPS pública
+        return $url;
+    }
+    private function enviarQrWhatsApp($user)
+    {
+        try {
+            $tokenBot = env('TEXMEBOT_API_TOKEN'); // Tu API key
+            $telefono = preg_replace('/[^0-9]/', '', $user->telefono); // Solo números
+            $telefono = '+591' . ltrim($telefono, '0');
+            // dd($telefono);
+            $mensaje = "👋 Bienvenido/a {$user->nombres}!\n\n" .
+                "Has sido registrado correctamente en el sistema académico 📚\n\n" .
+                "🔑 Contraseña temporal: {$user->password_visible}\n" .
+                "📧 Correo: {$user->email}\n\n" .
+                "Atentamente,\nSistema de Gestión Académica";
+
+            //URL PUBLICA
+            // Subir QR a Cloudinary y obtener URL pública
+            $qrPathLocal = public_path("qr/qr_{$user->id}.png");
+            $qrUrl = $this->subirQr($qrPathLocal);
+            // Codificar mensaje para URL
+            $mensajeUrl = urlencode($mensaje);
+            // http://api.textmebot.com/send.php?recipient=[phone number]&apikey=[your premium apikey]&text=[text to send]
+
+            $url = "http://api.textmebot.com/send.php?recipient={$telefono}&apikey={$tokenBot}&text={$mensajeUrl}&file={$qrUrl}&json=yes";
+            // URL GET
+            // $url = "http://api.textmebot.com/send.php?recipient={$telefono}&apikey={$tokenBot}&text={$mensajeUrl}&json=yes";
+
+            // Hacer la petición GET
+            $response = Http::get($url);
+
+            // Revisar respuesta
+            if ($response->failed()) {
+                \Log::error('❌ Error al enviar WhatsApp: ' . $response->body());
+            } else {
+                \Log::info("✅ Mensaje enviado correctamente a {$telefono}");
+            }
+        } catch (\Exception $e) {
+            \Log::error('⚠️ Excepción al enviar WhatsApp: ' . $e->getMessage());
+        }
+    }
+
+
+
+
+
+
+
+
+
+    public function show($id)
+    {
         if (Auth::user()) {
+            $usuario = User::with('rol')->find($id);
 
-            $usuario = User::find($id);
-            $role = User::with('roles')
-                ->join("roles", "roles.id", "=", "users.id_rol")
-                ->where("users.id_rol", $id)
-                ->get();
+            if (!$usuario) {
+                return response()->json(['error' => 'Usuario no encontrado'], 404);
+            }
 
-
-            return view('admin.usuarios.show', compact('usuario', 'role'));
+            return view('admin.usuarios.show', compact('usuario'));
         } else {
             Auth::logout();
             return redirect()->back();
         }
     }
+
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
-        //
         if (Auth::user()) {
             $users = User::findOrFail($id);
-            $options = Role::whereIn('name', ['Director', 'Secretaria', 'Admin'])->pluck('name', 'id')->toArray();
-            $roles = [null => "SELECCIONE ROL"] + $options;
 
-            $usuario  = User::find($id);
-            return view('admin.usuarios.edit', compact('users', 'roles', 'usuario'));
+            $options = Role::whereIn('name', ['SECRETARIA', 'ADMIN'])
+                ->pluck('name', 'id')
+                ->toArray();
+
+            $roles = collect($options)->prepend('SELECCIONE ROL', null)->toArray();
+
+            return view('admin.usuarios.edit', compact('users', 'roles'));
         } else {
             Auth::logout();
             return redirect()->back();
         }
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -154,20 +306,46 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         //
+
         if (Auth::user()) {
             $request->validate(
                 [
-                    'nombres' => 'required',
-                    'apellidos' => 'required',
+                    'nombres' => 'required|string|max:255',
+                    'apellidos' => 'required|string|max:255',
                     'genero' => 'required',
-                    'direccion' => 'required',
-                    'email' => 'required',
-                    'password' => 'required',
+                    'direccion' => 'required|string|max:255',
+                    'ci' => 'required|string|max:20',
+                    'telefono' => 'required|string|max:15',
+                    'fecha_nac' => 'required|date',
+                    'email' => [
+                        'required',
+                        'email',
+                        'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/i',
+                        'unique:users,email',
+                    ],
                     'estado_user' => 'required',
                     'roles' => 'required',
-                    'genero' => 'required',
                     'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-
+                ],
+                [
+                    'nombres.required' => 'El campo nombres es obligatorio.',
+                    'apellidos.required' => 'El campo apellidos es obligatorio.',
+                    'genero.required' => 'Debe seleccionar un género.',
+                    'direccion.required' => 'La dirección es obligatoria.',
+                    'ci.required' => 'El número de cédula es obligatorio.',
+                    'telefono.required' => 'El teléfono es obligatorio.',
+                    'fecha_nac.required' => 'Debe ingresar la fecha de nacimiento.',
+                    'fecha_nac.date' => 'La fecha de nacimiento debe tener un formato válido.',
+                    'email.required' => 'El correo electrónico es obligatorio.',
+                    'email.email' => 'Debe ingresar un correo electrónico válido.',
+                    'email.regex' => 'Solo se permiten correos con dominio @gmail.com.',
+                    'email.unique' => 'Este correo ya está registrado.',
+                    'estado_user.required' => 'Debe seleccionar un estado.',
+                    'roles.required' => 'Debe asignar un rol al usuario.',
+                    'imagen.required' => 'Debe subir una imagen.',
+                    'imagen.image' => 'El archivo debe ser una imagen válida.',
+                    'imagen.mimes' => 'La imagen debe ser de tipo JPEG, PNG, JPG o GIF.',
+                    'imagen.max' => 'La imagen no debe superar los 2 MB.',
                 ]
             );
             $prueba = Role::find($request->roles);
@@ -179,8 +357,11 @@ class UserController extends Controller
             $user->direccion = strtoupper($request->direccion);
             $user->email = $request->email;
             $user->estado_user = $request->estado_user;
-            $user->password = Hash::make($request->password);
+
             $user->id_rol = $prueba->id;
+            $user->ci = $request->ci;
+            $user->telefono = $request->telefono;
+            $user->fecha_nac = $request->fecha_nac;
 
             if ($request->hasFile('imagen')) {
                 $imagen = $request->file('imagen');
@@ -189,10 +370,37 @@ class UserController extends Controller
                 $user->imagen = $filename;
             }
 
-            $user->update();
+            // Verificar si la contraseña fue modificada y no está vacía
+            if ($request->filled('password')) {
+                $password = $request->password;
+                $user->password = Hash::make($password);
+
+                // Generar un nuevo qr_token (puedes usar cualquier lógica para generarlo)
+                $user->qr_token = Str::random(30); // ejemplo con Str helper
+
+                // Guardar usuario con nueva contraseña y token
+                $user->save();
+
+                // Generar QR con el nuevo token y guardarlo localmente
+                //$fileNameqr = "qr_{$user->id}.png";
+                //$qrPath = public_path("qr/{$fileNameqr}");
+                // QrCode::format('png')->size(300)->generate($user->qr_token, $qrPath);
+
+                // Enviar QR por WhatsApp (define esta función para que mande el archivo)
+                //$this->enviarQrWhatsApp($user, $qrPath);
+
+                // Enviar contraseña por WhatsApp (define esta función para enviar texto)
+                //$this->enviarContrasenaWhatsApp($user->telefono, $password);
+            } else {
+                // Si no modificó contraseña, solo actualiza otros datos
+                $user->save();
+            }
+
 
             $user->roles()->sync($request->roles);
-            return redirect()->route('admin.usuarios.index')->with('actualizar', 'ok');
+
+
+            return response()->json(['success' => true, 'message' => 'Usuario actualizado correctamente']);
         } else {
             Auth::logout();
             return redirect()->back();
@@ -202,16 +410,33 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    // Controlador (después de eliminar)
     public function destroy(string $id)
     {
-        //
-        if (Auth::user()) {
-            $user = User::find($id);
+        $user = User::find($id);
+        if ($user) {
             $user->delete();
-            return redirect()->route('admin.usuarios.index')->with('eliminar', 'ok');
+            return response()->json(['success' => true, 'message' => 'Usuario eliminado correctamente']);
+        }
+        return response()->json(['success' => false, 'message' => 'Usuario no encontrado']);
+    }
+
+
+
+    public function usuariosPDF()
+    {
+        if (Auth::check()) {
+            // Obtener el estudiante con sus tutores relacionados
+
+            $usuarios = User::where('id_rol', 1)->get();
+            // Renderizar la vista de PDF con los datos
+            $pdf = PDF::loadView('admin.pdf.usuarios', compact('usuarios'));
+
+            return $pdf->stream('usuarios.pdf');
         } else {
+            // Si no está autenticado
             Auth::logout();
-            return redirect()->back();
+            return redirect()->route('login')->with('error', 'Debe iniciar sesión.');
         }
     }
 }

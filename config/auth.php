@@ -40,9 +40,19 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'api' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
 
     /*
+    'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+    ],
     |--------------------------------------------------------------------------
     | User Providers
     |--------------------------------------------------------------------------
@@ -60,10 +70,13 @@ return [
     */
 
     'providers' => [
+
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
+
+
 
         // 'users' => [
         //     'driver' => 'database',

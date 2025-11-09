@@ -16,17 +16,22 @@ return new class extends Migration
             $table->string('imagen')->nullable(true);
             $table->string('nombres');
             $table->string('apellidos');
-            $table->integer('genero');
-            $table->string('direccion');
-            $table->integer('estado_user');
+            $table->boolean('genero')->default(1);
+            $table->text('direccion');
+            $table->boolean('estado_user')->default(1);
+            $table->string('ci', 20); // O más si necesitas más caracteres
+            $table->integer('telefono')->unique();
+            $table->date('fecha_nac');
 
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+
             $table->string('password');
 
             $table->unsignedBigInteger('id_rol');
             $table->foreign('id_rol')->references('id')->on('roles')->onDelete('cascade');
 
+            $table->string('qr_token')->unique();
 
             $table->rememberToken();
             $table->timestamps();

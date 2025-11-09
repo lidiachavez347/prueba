@@ -13,6 +13,13 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'texmebot' => [
+    'token' => env('TEXMEBOT_API_TOKEN'),
+],
+
+    'mailboxlayer' => [
+        'key' => env('MAILBOXLAYER_KEY'),
+    ],
 
     'mailgun' => [
         'domain' => env('MAILGUN_DOMAIN'),

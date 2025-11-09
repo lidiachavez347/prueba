@@ -3,31 +3,44 @@
 
 @section('content')
 <br>
-<div class="row" style="margin: center">
-    <div class="col-3">
-    </div>
-    <div class="col-6">
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
         <div class="card">
 
             <div class="card-header">
                 <div class="left">Usuario</div>
                 <div class="right"><b>Nuevo</b></div>
             </div>
-            {!! Form::open(['route' => 'admin.usuarios.store', 'enctype' => 'multipart/form-data', 'id' => 'miFormulario']) !!}
+            {!! Form::open(['route' => 'admin.usuarios.store', 'enctype' => 'multipart/form-data']) !!}
             <div class="card-body">
-
+ @csrf
 
                 <div class="row">
-                    <div class="col-4">
+<div class="col-md-4">
                         <div class="form-group">
                             {!! Form::label('roles', 'Rol:') !!}
                             {!! Form::select('roles', $roles, null, ['class' => 'form-control']) !!}
+                             @error('roles') <span class="text-danger">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {!! Form::label('ci', 'CI: ') !!}
+                            {!! Form::text('ci', null, ['class' => 'form-control', 'placeholder' => 'Cedula de identidad']) !!}
+                            @error('ci') <span class="text-danger">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            {!! Form::label('fecha_nac', 'Fecha Nacimiento:') !!}
+                            {!! Form::date('fecha_nac', null, ['class' => 'form-control', 'placeholder' => 'Fecha']) !!}
+                            @error('fecha_nac') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>
 
                 <div class="row">
-                    <div class="col">
+                    <div class="col-md-6">
                         <div class="form group">
                             {!! Form::label('nombres', 'Nombres:') !!}
                             {!! Form::text('nombres', null, [
@@ -39,7 +52,7 @@
                             @enderror
                         </div>
                     </div>
-                    <div class="col">
+                    <div class="col-md-6">
                         <div class="form group">
                             {!! Form::label('apellidos', 'Apellidos:') !!}
                             {!! Form::text('apellidos', null, [
@@ -54,7 +67,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="col">
+                    <div class="col-md-6">
                         <div class="form group">
                             {!! Form::label('direccion', 'Direccion:') !!}
                             {!! Form::textarea('direccion', null, [
@@ -69,7 +82,7 @@
                             @enderror
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-md-6">
                         <div class="form group">
                             {!! Form::label('genero', 'Genero:') !!}
                             {!! Form::select('genero', [null => 'SELECCIONE GENERO', '1' => ' MASCULINO', '0' => 'FEMENINO'], null, [
@@ -84,7 +97,7 @@
 
 
                 <div class="row">
-                    <div class="col">
+                    <div class="col-md-6">
                         <div class="form group">
                             {!! Form::label('email', 'Email:') !!}
                             {!! Form::email('email', null, ['class' => 'form-control', 'placeholder' => 'Email']) !!}
@@ -93,10 +106,10 @@
                             @enderror
                         </div>
                     </div>
-                    <div class="col">
+                    <div class="col-md-6">
                         <div class="form group">
                             {!! Form::label('password', 'Contraseña: ') !!}
-                            {!! Form::password('password', ['class' => 'form-control', 'placeholder' => 'Password']) !!}
+                            {!! Form::password('password', ['id' => 'password-hidden', 'class' => 'form-control', 'placeholder' => 'Contraseña','readonly' => 'readonly']) !!}
                             @error('password')
                             <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -105,7 +118,31 @@
                 </div>
                 <br>
                 <div class="row">
-                    <div class="col">
+                    <div class="col-md-6 d-none">
+
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+
+                                <label class="control-label" for="telefono">Teléfono</label>
+    <input 
+        class="form-control" 
+        type="tel" 
+        name="telefono" 
+        placeholder="Número de teléfono"
+        pattern="[0-9]{8,15}" 
+        title="Ingrese solo números (8 a 15 dígitos)" 
+        required
+    >
+    @error('telefono') 
+        <span class="text-danger">{{ $message }}</span> 
+    @enderror
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-md-6">
 
                         <center>
                             <div class="grid grid-cols-1 mt-5 mx-7">
@@ -118,8 +155,10 @@
                             {!! Form::label('imagen', 'Subir Imagen') !!}
                             {!! Form::file('imagen', ['class' => 'form-control']) !!}
                         </div>
+                        @error('imagen') <span class="text-danger">{{ $message }}</span> @enderror
+                        <button type="button" id="eliminar-imagen" class="btn btn-danger btn-sm d-none">Eliminar</button>
                     </div>
-                    <div class="col">
+                    <div class="col-md-6">
                         <div class="form group">
                             {!! Form::label('estado_user', 'Estado:') !!}
                             {!! Form::select('estado_user', [null => 'SELECCIONE ESTADO', '0' => 'NO ACTIVO', '1' => 'ACTIVO'], null, [
@@ -141,7 +180,7 @@
                         <i class="fa fa-arrow-left"></i> Cancelar
                     </a>
 
-                    <button type="submit" class="btn btn-success btn-sm" aria-label="eliminar" data-toggle="tooltip" data-placement="top" title="Guardar">
+                    <button type="submit" class="btn btn-success btn-sm" aria-label="guardar" data-toggle="tooltip" data-placement="top" title="Guardar">
                         <i class="fa fa-check"></i> Guardar
                     </button>
                 </center>
@@ -174,6 +213,82 @@
 @stop
 @section('js')
 <script>
+document.querySelector('input[name="telefono"]').addEventListener('input', function(e) {
+    this.value = this.value.replace(/\D/g, ''); // elimina todo lo que no sea número
+});
+
+
+
+    function generarPassword(longitud = 8) {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let pass = "";
+    for (let i = 0; i < longitud; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+}
+
+$(document).ready(function() {
+    const emailInput = $('input[name="email"]');
+    const feedback = $('<small id="email-feedback"></small>');
+    emailInput.after(feedback);
+
+    let typingTimer;
+    const delay = 1000; // milisegundos después de dejar de escribir
+
+    emailInput.on('keyup', function() {
+        clearTimeout(typingTimer);
+        const email = $(this).val();
+
+        if (email.length > 5) {
+            feedback.text('Verificando correo... 🔄').css('color', 'gray');
+            typingTimer = setTimeout(() => {
+                verificarEmail(email);
+                // Generar contraseña automática y asignar al campo oculto
+                const nuevaPass = generarPassword(8);
+                $('#password-hidden').val(nuevaPass);
+                console.log('Contraseña generada:', nuevaPass);
+            
+            } , delay);
+        } else {
+            feedback.text('');
+            $('#password-hidden').val('');
+        }
+    });
+
+    function verificarEmail(email) {
+        $.ajax({
+            url: '{{ route('verificar.email') }}',
+            type: 'POST',
+            data: {
+                email: email,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.valid) {
+                    feedback.text(response.message).css('color', 'green');
+                } else {
+                    feedback.text(response.message).css('color', 'red');
+                    $('#password-hidden').val('');
+                }
+            },
+            error: function() {
+                feedback.text('⚠️ Error al verificar el correo.').css('color', 'orange');
+            }
+        });
+    }
+});
+$('form').on('submit', function(e) {
+    const mensaje = $('#email-feedback').text();
+    if (mensaje.includes('no existe') || mensaje.includes('Error')) {
+        e.preventDefault();
+        alert('Por favor, ingrese un correo válido antes de guardar.');
+    }
+});
+
+</script>
+
+<script>
     document.getElementById('miFormulario').onsubmit = function() {
         // Limpia los campos del formulario al enviarlo
         this.reset();
@@ -181,14 +296,31 @@
 </script>
 <script>
     $(document).ready(function(e) {
+        // Cuando se elige una imagen
         $('#imagen').change(function() {
             let reader = new FileReader();
             reader.onload = (e) => {
+                // Mostrar la imagen seleccionada
                 $('#imagenseleccionada').attr('src', e.target.result);
+
+                // Mostrar el botón de eliminar imagen
+                $('#eliminar-imagen').removeClass('d-none');
             }
             reader.readAsDataURL(this.files[0]);
+        });
 
+        // Cuando se haga clic en el botón de eliminar
+        $('#eliminar-imagen').click(function() {
+            // Eliminar la imagen cargada
+            $('#imagenseleccionada').attr('src', ''); // Restaurar el área de imagen a vacío
+
+            // Ocultar el botón de eliminar
+            $(this).addClass('d-none');
+
+            // Eliminar la imagen del campo de entrada (input)
+            $('#imagen').val('');
         });
     });
 </script>
+
 @stop

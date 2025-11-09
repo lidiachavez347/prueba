@@ -50,17 +50,21 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        //
-
         if (Auth::user()) {
             $request->validate([
                 'name' => 'required|unique:roles,name',
                 'estado' => 'required',
+            ], [
+                'name.required' => 'El campo nombre es obligatorio.',
+                'name.unique' => 'Ya existe un rol con este nombre.',
+                'estado.required' => 'El campo estado es obligatoriao',
             ]);
 
-            $role = Role::create($request->all());
-            $role->permissions()->sync($request->permissions);
+            $data = $request->all();
+            $data['name'] = strtoupper($data['name']);  // Convertir a mayúsculas
 
+            $role = Role::create($data);
+            $role->permissions()->sync($request->permissions);
 
             return redirect()->route('admin.roles.index')->with('guardar', 'ok');
         } else {
@@ -68,6 +72,7 @@ class RoleController extends Controller
             return redirect()->back();
         }
     }
+
 
     /**
      * Display the specified resource.
@@ -79,7 +84,7 @@ class RoleController extends Controller
         if (Auth::user()) {
             $role = Role::findOrFail($id); // Encuentra el rol
             $permissions = $role->permissions; // Solo obtén los permisos asignados al rol
-        
+
             return view('admin.roles.show', compact('role', 'permissions'));
         } else {
             Auth::logout();
@@ -97,6 +102,7 @@ class RoleController extends Controller
             $permissions = Permission::all();
 
             $role = Role::find($id);
+
             return view('admin.roles.edit', compact('role', 'permissions'));
         } else {
             Auth::logout();
@@ -109,12 +115,25 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
-        //
-
         if (Auth::user()) {
+            $request->validate([
+                'name' => 'required|unique:roles,name,' . $role->id,
+                'estado' => 'required',
+            ], [
+                'name.required' => 'El campo nombre es obligatorio.',
+                'name.unique' => 'Ya existe un rol con este nombre.',
+                'estado.required' => 'El campo estado es obligatorio.',
+            ]);
+            $data = $request->all();
 
-            $role->update($request->all());
-            $role->permissions()->sync($request->permissions);
+            // Convertir 'name' a mayúsculas antes de actualizar
+            if (isset($data['name'])) {
+                $data['name'] = strtoupper($data['name']);
+            }
+
+            $role->update($data);
+            $role->permissions()->sync($request->permissions ?? []);
+
 
             return redirect()->route('admin.roles.index')->with('actualizar', 'ok');
         } else {
@@ -123,19 +142,19 @@ class RoleController extends Controller
         }
     }
 
+
     /**
      * Remove the specified resource from storage.
      */
+
     public function destroy(string $id)
     {
-        //
-        if (Auth::user()) {
-            $role = Role::find($id);
+        $role = Role::find($id);
+
+        if ($role) {
             $role->delete();
-            return redirect()->route('admin.roles.index')->with('eliminar', 'ok');
-        } else {
-            Auth::logout();
-            return redirect()->back();
+            return response()->json(['success' => true, 'message' => 'rol eliminado correctamente']);
         }
+        return response()->json(['success' => false, 'message' => 'rol no encontrado']);
     }
 }

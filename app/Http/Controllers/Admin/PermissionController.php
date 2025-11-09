@@ -34,7 +34,6 @@ class PermissionController extends Controller
      */
     public function create()
     {
-        //
         if (Auth::user()) {
             $roles = Role::pluck('name', 'id'); // Esto obtiene una lista de roles con su ID y nombre
             return view('admin.permisos.create', compact('roles'));
@@ -49,19 +48,33 @@ class PermissionController extends Controller
      */
     public function store(Request $request)
     {
-        //
-        //
+
         if (Auth::user()) {
-            // Crear el permiso
-            $permiso = Permission::create($request->all());
+            $request->validate(
+                [
+                    'name' => 'required|unique:permissions,name',
+                    'description' => 'required',
+                ],
+                [
+                    'name.required' => 'El campo nombre es obligatorio.',
+                    'description.required' => 'El campo descripcion es obligatorio.',
+                ]
+            );
+            // Convertir a mayúsculas
+            $data = $request->all();
+            $data['name'] = $data['name'];
+            $data['description'] = strtoupper($data['description']);
+
+            // Crear el permiso con datos en mayúsculas
+            $permiso = Permission::create($data);
 
             // Asignar roles al permiso
             if ($request->has('roles')) {
-                $permiso->roles()->sync($request->roles); // Asigna los roles seleccionados
+                $permiso->roles()->sync($request->roles);
             }
 
             return redirect()->route('admin.permisos.index')
-                ->with('success', 'Permiso creado y asignado a roles correctamente.');
+                ->with('guardar', 'ok');
         } else {
             Auth::logout();
             return redirect()->back();
@@ -73,61 +86,74 @@ class PermissionController extends Controller
      */
     public function show(string $id)
     {
-        //
-        if (Auth::user()){
-            $permission = Permission::findOrFail($id); // Encuentra el permiso
+        if (Auth::check()) { // Verifica si el usuario está autenticado
+            $permission = Permission::findOrFail($id); // Encuentra el permiso o lanza 404
             $roles = $permission->roles; // Obtén los roles que tienen este permiso
-        
+
             return view('admin.permisos.show', compact('permission', 'roles'));
-        }else{
+        } else {
             Auth::logout();
             return redirect()->back();
         }
     }
+
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
-        if (Auth::user()) {
+        if (Auth::user()){
+        $permiso = Permission::findOrFail($id);
+        $roles = Role::pluck('name', 'id'); // Obtener todos los roles
+        $permisoRoles = $permiso->roles->pluck('id')->toArray(); // Obtener los IDs de los roles asignados al permiso
 
-            $permiso = Permission::findOrFail($id);
-            $roles = Role::pluck('name', 'id'); // Obtener todos los roles
-            $permisoRoles = $permiso->roles->pluck('id')->toArray(); // Obtener los IDs de los roles ya asignados al permiso
-
-            return view('admin.permisos.edit', compact('permiso', 'roles', 'permisoRoles'));
-        } else {
-            Auth::logout();
-            return redirect()->back();
-        }
+        return view('admin.permisos.edit', compact('permiso', 'roles', 'permisoRoles'));
+          } else {
+        Auth::logout();
+        return redirect()->back();
     }
+    }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
-        if (Auth::user()) {
-            $permiso = Permission::findOrFail($id);
-            $permiso->update($request->all());
-        
-            // Sincronizar roles
-            if ($request->has('roles')) {
-                $permiso->roles()->sync($request->roles); // Sincroniza los roles seleccionados
-            } else {
-                $permiso->roles()->sync([]); // Si no seleccionaron ningún rol, quita todos
-            }
-        
-            return redirect()->route('admin.permisos.index')
-                ->with('success', 'Permiso actualizado correctamente.');
+        if(Auth::user()){
+               $request->validate([
+            'name' => 'required|string|max:255|unique:permissions,name,' . $id,
+            'description' => 'required|string|max:255',
+            'roles' => 'nullable|array'
+        ], [
+            'name.required' => 'El campo nombre es obligatorio.',
+            'name.unique' => 'Ya existe un permiso con este nombre.',
+            'description.required' => 'La descripción es obligatoria.',
+        ]);
+        $permiso = Permission::findOrFail($id);
+
+        $permiso->update([
+            'name' => $request->name,
+            'description' => strtoupper($request->description)
+        ]);
+
+        // Sincronizar roles
+        if ($request->has('roles')) {
+            $permiso->roles()->sync($request->roles);
         } else {
-            Auth::logout();
-            return redirect()->back();
+            $permiso->roles()->sync([]);
         }
+
+        return response()->json(['success' => true, 'message' => 'Permiso actualizado correctamente']);
+           } else {
+        Auth::logout();
+        return redirect()->back();
     }
+    }
+
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -138,7 +164,7 @@ class PermissionController extends Controller
         if (Auth::user()) {
             $permisos = Permission::find($id);
             $permisos->delete();
-            return redirect()->route('admin.permisos.index')->with('eliminar', 'ok');
+            return response()->json(['success' => true, 'message' => 'Permiso eliminado correctamente']);
         } else {
             Auth::logout();
             return redirect()->back();
