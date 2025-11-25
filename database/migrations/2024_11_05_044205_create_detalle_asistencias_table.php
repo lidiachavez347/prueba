@@ -18,7 +18,9 @@ return new class extends Migration
             
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('estudiantes')->onDelete('cascade');
-            
+
+            $table->unsignedBigInteger('curso_id'); // FK a usuarios (tutor)
+            $table->foreign('curso_id')->references('id')->on('cursos')->onDelete('cascade');
             $table->timestamps();
         });
     }

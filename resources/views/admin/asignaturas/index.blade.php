@@ -73,7 +73,11 @@
         <thead class="bg-dark text-white">
             <tr>
                 <th>ID</th>
-                <th>PROFESOR</th>
+                <th>IMAGEN</th>
+                <th>NOMBRES Y APELLIDOS</th>
+                <th>GENERO</th>
+                <th>ESTADO</th>
+                <th>FECHA DE REGISTRO</th>
                 <th>ACCIONES</th>
             </tr>
         </thead>
@@ -82,37 +86,42 @@
             <tr>
                 <td>
                     <a>
-                        {{ $profesor->user->id }}
+                        {{ $loop->iteration }} 
                     </a>
                 </td>
                 <td>
-                    <a href="{{ route('admin.asignaturas.show', $profesor->user->id) }}">
-                        {{ $profesor->user->nombres }}
-                        {{ $profesor->user->apellidos }}
+                    <img src="{{ asset('images/' . $profesor->imagen) }}" alt="Descripción de la imagen" style="width: 40px; height: 40px;">
+                </td>
+                <td>
+                    <a href="{{ route('admin.asignaturas.show', $profesor->id) }}">
+                        {{ $profesor->nombres }}
+                        {{ $profesor->apellidos }}
                     </a>
                 </td>
-
-
+                                <td width="70px" style="text-align: right">
+                    @if ($profesor->genero == 0)
+                    <span class="badge badge-pill badge-secondary">FEMENINO</span>
+                    @elseif ($profesor->genero == 1)
+                    <span class="badge badge-pill badge-secondary">MASCULINO</span>
+                    @else
+                    <span class="badge badge-pill badge-warning">No permitido</span>
+                    @endif
+                </td>
+                <td width="70px" style="text-align: right">
+                    @if ($profesor->estado_user == 1)
+                    <span class="badge badge-pill badge-success ">ACTIVO</span>
+                    @elseif ($profesor->estado_user == 0)
+                    <span class="badge badge-pill badge-danger">NO ACTIVO</span>
+                    @else
+                    <span class="badge bg-warning">No permitido</span>
+                    @endif
+                </td>
+                <td>{{ $profesor->created_at }}</td>
                 <td>
-                    <a class="btn btn-info btn-sm" href="{{ route('admin.asignaturas.show', $profesor->user->id) }}">
+                    <a class="btn btn-info btn-sm" href="{{ route('admin.asignaturas.show', $profesor->id) }}">
                         <i class="fa fa-eye"
                             aria-hidden="true"></i>
                     </a>
-
-                    <a class="btn btn-warning btn-sm" href="{{ route('admin.asignaturas.edit', $profesor->user->id) }}">
-                        <i class="fa fa-edit"
-                            aria-hidden="true"></i>
-                    </a>
-
-
-                    <a href="#" class="btn btn-danger btn-sm" onclick="eliminarRegistro({{ $profesor->user->id}})">
-                        <i class="fa fa-trash"></i> 
-                    </a>
-                    <form id="delete-form-{{ $profesor->user->id }}" action="{{ route('admin.asignaturas.destroy', $profesor->user->id) }}" method="POST" style="display: none;">
-                        @csrf
-                        @method('DELETE')
-                    </form>
-
                 </td>
             </tr>
 

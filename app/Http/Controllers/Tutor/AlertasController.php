@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Tutor;
 use App\Http\Controllers\Controller;
 use App\Models\Alerta;
 use App\Models\DetalleAsistencia;
+use App\Models\Estudiante;
+use App\Models\NotaDetalle;
 use App\Models\Profesore;
 use App\Models\Promedio;
 use App\Models\Tutore;
@@ -12,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 class AlertasController extends Controller
 {
-    public function mostrarAlertas(Request $request)
+   /* public function mostrarAlertas(Request $request)
     {
         if (Auth::check()) {
             // Obtener el tutor autenticado
@@ -72,6 +74,50 @@ class AlertasController extends Controller
             Auth::logout();
             return redirect()->route('login')->with('error', 'Debe iniciar sesión.');
         }
+    }*/
+        public function index()
+    {
+        //listar a los estudiantes y notas del estudiantes que esta a cargo el tutor
+        $tutor = Auth::user()->id;
+
+        $estudiante = Estudiante::where('id_tutor',$tutor)->get();
+
+        if (!$estudiante) {
+        return view('tutores.notas.index', [
+            'notasAgrupadas' => [],
+            'trimestres' => [],
+            'estudiante' => null,
+            'mensaje' => 'No tienes estudiantes asignados.'
+        ]);
+    }
+ // Obtener todos los IDs de estudiantes
+    $estudiantesIds = $estudiante->pluck('id');
+
+
+        // 1. Obtener todas las notas del estudiante
+        $notas = NotaDetalle::whereIn('id_estudiante', $estudiantesIds)
+            ->with(['materia', 'trimestre']) // si tienes relaciones
+            ->get();
+
+        
+        $notasAgrupadas = [];
+
+        foreach ($notas as $nota) {
+            $idEst = $nota->id_estudiante;
+            $materia = $nota->materia->nombre_asig ?? 'SIN MATERIA';
+            $trimestre = $nota->trimestre->periodo ?? 'SIN TRIMESTRE';
+
+            $notasAgrupadas[$idEst][$materia][$trimestre] = $nota->promedio_materia;
+        }
+
+        // 3. Obtener todos los trimestres para armar encabezados
+        $trimestres = $notas->pluck('trimestre.periodo')->unique();
+
+        return view('tutores.notas.index', [
+            'notasAgrupadas' => $notasAgrupadas,
+            'trimestres' => $trimestres,
+            'estudiante' => $estudiante
+        ]);
     }
     
 }

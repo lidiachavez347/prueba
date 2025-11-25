@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Profesor;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Estudiante;
+use App\Models\NotaDetalle;
 use App\Models\Profesore;
+use App\Models\Trimestre;
 use App\Models\Tutore;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class EstudianteController extends Controller
 {
@@ -21,28 +24,18 @@ class EstudianteController extends Controller
     {
         if (Auth::check()) {
             // Obtener al profesor logueado
-            $profesor = Profesore::where('id_user', Auth::id())->first();
+            $profesor = User::where('id', Auth::id())->first();
 
             if (!$profesor) {
                 // Si no se encuentra al profesor, redirigir con un mensaje de error
                 return redirect()->back()->with('error', 'No se encontró al profesor logueado.');
             }
 
-            // Obtener los estudiantes asociados a los paralelos del profesor
-
-            /* $estudiantes = Estudiante::join('estudiante_paralelo', 'estudiantes.id', '=', 'estudiante_paralelo.id_estudiante')
-                ->join('profesores', 'profesores.id_user', '=', Auth::id())
-                ->join('profesor_asignaturas', 'profesor_asignaturas.id_profesor', '=', 'profesores.id_user')
-                ->where('estudiante_paralelo.id_paralelo', 'profesor_asignaturas.id_paralelo')
-                ->select('estudiantes.nombres_es', 'estudiantes.id', 'estudiantes.apellidos_es', 'estudiantes.fecha_nac_es', 'estudiantes.genero_es', 'estudiantes.estado_es', 'estudiantes.rude_es')
-                ->get();*/
-            //dd(Auth::id());
 
 
-            $paralelo = User::join('profesores', 'profesores.id_user', '=', 'users.id')
-                ->join('profesor_asignaturas', 'profesor_asignaturas.id_profesor', '=', 'profesores.id')
-                ->where('profesores.id_user', Auth::user()->id)
-                ->whereColumn('profesor_asignaturas.id_profesor', 'profesores.id')
+            $paralelo = User::join('profesor_asignaturas', 'profesor_asignaturas.id_profesor', '=', 'users.id')
+                ->where('users.id', Auth::user()->id)
+                ->whereColumn('profesor_asignaturas.id_profesor', 'users.id')
                 ->select('profesor_asignaturas.id_curso')
                 ->first();
 
@@ -77,20 +70,16 @@ class EstudianteController extends Controller
     {
         if (Auth::check()) {
             // Obtener el estudiante con sus tutores relacionados
-            $estudiante = Estudiante::with('tutors')->findOrFail($id);
+            $estudiante = Estudiante::with('tutor')->findOrFail($id);
 
             // Obtener información detallada de los tutores relacionados al estudiante
-            $tutores = Tutore::join('users', 'tutores.id_user', '=', 'users.id')
-                ->join('estudiante_tutors', 'estudiante_tutors.id_tutor', '=', 'tutores.id')
-                ->where('estudiante_tutors.id_estudiante', $id)
+            $tutores = User::join('estudiantes', 'estudiantes.id_tutor', '=', 'users.id')
+                ->where('estudiantes.id', $id)
                 ->select(
                     'users.nombres',
                     'users.apellidos',
                     'users.imagen',
                     'users.direccion',
-                    'tutores.relacion',
-                    'tutores.estado_tutor',
-                    'tutores.ocupacion',
                     'users.telefono',
                     'users.estado_user'
                 )
@@ -110,8 +99,7 @@ class EstudianteController extends Controller
         if (Auth::check()) {
             // Obtener el estudiante con sus tutores relacionados
 
-            $estudiante = Estudiante::
-                join('estudiante_tutors', 'estudiantes.id', '=', 'estudiante_tutors.id_estudiante') // Corregido: campo `id_estudiante`
+            $estudiante = Estudiante::join('estudiante_tutors', 'estudiantes.id', '=', 'estudiante_tutors.id_estudiante') // Corregido: campo `id_estudiante`
                 ->join('tutores', 'estudiante_tutors.id_tutor', '=', 'tutores.id')
                 ->join('users', 'tutores.id_user', '=', 'users.id')
                 ->where('estudiantes.id_curso', 1)
@@ -143,4 +131,136 @@ class EstudianteController extends Controller
             return redirect()->route('login')->with('error', 'Debe iniciar sesión.');
         }
     }
+
+
+    public function notas($id)
+    {
+        // 1. Obtener todas las notas del estudiante
+        $notas = NotaDetalle::where('id_estudiante', $id)
+            ->with(['materia', 'trimestre']) // si tienes relaciones
+            ->get();
+
+        $estudiante = Estudiante::findOrFail($id);
+        $notasAgrupadas = [];
+
+        foreach ($notas as $nota) {
+            $materia = $nota->materia->nombre_asig ?? 'SIN MATERIA';
+            $trimestre = $nota->trimestre->periodo ?? 'SIN TRIMESTRE';
+
+            $notasAgrupadas[$materia][$trimestre] = $nota->promedio_materia;
+        }
+
+        // 3. Obtener todos los trimestres para armar encabezados
+        $trimestres = $notas->pluck('trimestre.periodo')->unique();
+
+        return view('profesor.estudiantes.notas', [
+            'notasAgrupadas' => $notasAgrupadas,
+            'trimestres' => $trimestres,
+            'estudiante' => $estudiante
+        ]);
+    }
+
+
+
+    public function pfboletin($id)
+    {
+
+        $notas = NotaDetalle::where('id_estudiante', $id)
+            ->with(['materia', 'trimestre']) // si tienes relaciones
+            ->get();
+
+        $estudiante = Estudiante::findOrFail($id);
+        $notasAgrupadas = [];
+
+        foreach ($notas as $nota) {
+            $materia = $nota->materia->nombre_asig ?? 'SIN MATERIA';
+            $trimestre = $nota->trimestre->periodo ?? 'SIN TRIMESTRE';
+
+            $notasAgrupadas[$materia][$trimestre] = $nota->promedio_materia;
+        }
+        $fileNameqr = "qr_{$estudiante->id}.png";
+            
+        $rutaQR = public_path("images/{$fileNameqr}");
+
+       /// $ = storage_path("images/qr_{}.png");
+         //$qrPath = public_path("qr/{$fileNameqr}");
+        $urlLogin = url("boletin/estudiante/{$estudiante->id}/pdf");
+
+        QrCode::format('png')->size(150)->generate($urlLogin, $rutaQR);
+        // 3. Obtener todos los trimestres para armar encabezados
+        $trimestres = $notas->pluck('trimestre.periodo')->unique();
+
+        $pdf = Pdf::setPaper('a4','landscape')
+        ->loadView('pdf.pdf_trimestre', [
+            'estudiante' => $estudiante,
+            'notasAgrupadas' => $notasAgrupadas,
+            'trimestres' => $trimestres,
+            'qrRuta' => $rutaQR
+        ]);
+
+        //return $pdf->stream('boletin_' . $estudiante->nombres_es . '.pdf');
+$nombreArchivo = 'boletin_' . $estudiante->nombres_es . '.pdf';
+
+return $pdf->stream($nombreArchivo, [
+'Content-Type' => 'application/pdf',
+    'Content-Disposition' => 'inline; filename="'.$nombreArchivo.'"'
+]);
+
+    }
+//Route::get('/boletin/estudiante/{id}/pdf', [ProfesorEstudianteController::class, 'pfboletin'])->name('pdf.pdf_trimestre');
+
+
+public function boletin($id)
+    {
+
+        $notas = NotaDetalle::where('id_estudiante', $id)
+            ->with(['materia', 'trimestre']) // si tienes relaciones
+            ->get();
+
+        $estudiante = Estudiante::findOrFail($id);
+        $notasAgrupadas = [];
+
+        foreach ($notas as $nota) {
+            $materia = $nota->materia->nombre_asig ?? 'SIN MATERIA';
+            $trimestre = $nota->trimestre->periodo ?? 'SIN TRIMESTRE';
+
+            $notasAgrupadas[$materia][$trimestre] = $nota->promedio_materia;
+        }
+        $fileNameqr = "qr_{$estudiante->id}.png";
+            
+        $rutaQR = public_path("images/{$fileNameqr}");
+
+       /// $ = storage_path("images/qr_{}.png");
+         //$qrPath = public_path("qr/{$fileNameqr}");
+        $urlLogin = url("boletin/estudiante/{$estudiante->id}/ver");
+
+        QrCode::format('png')->size(150)->generate($urlLogin, $rutaQR);
+        // 3. Obtener todos los trimestres para armar encabezados
+        $trimestres = $notas->pluck('trimestre.periodo')->unique();
+
+        $pdf = Pdf::setPaper('a4','landscape')
+        ->loadView('pdf.enviar', [
+            'estudiante' => $estudiante,
+            'notasAgrupadas' => $notasAgrupadas,
+            'trimestres' => $trimestres,
+            'qrRuta' => $rutaQR
+        ]);
+
+        //return $pdf->stream('boletin_' . $estudiante->nombres_es . '.pdf');
+        $nombreArchivo = 'boletin_' . $estudiante->nombres_es . '.pdf';
+
+return $pdf->stream($nombreArchivo, [
+'Content-Type' => 'application/pdf',
+    'Content-Disposition' => 'inline; filename="'.$nombreArchivo.'"'
+]);
+    }
+
+public function verBoletin($id)
+{
+    return view('pdf.visualizar_boletin', [
+        'id' => $id
+    ]);
+}
+
+
 }

@@ -57,7 +57,7 @@ class RoleController extends Controller
             ], [
                 'name.required' => 'El campo nombre es obligatorio.',
                 'name.unique' => 'Ya existe un rol con este nombre.',
-                'estado.required' => 'El campo estado es obligatoriao',
+                'estado.required' => 'El campo estado es obligatorio',
             ]);
 
             $data = $request->all();
@@ -124,6 +124,7 @@ class RoleController extends Controller
                 'name.unique' => 'Ya existe un rol con este nombre.',
                 'estado.required' => 'El campo estado es obligatorio.',
             ]);
+            
             $data = $request->all();
 
             // Convertir 'name' a mayúsculas antes de actualizar

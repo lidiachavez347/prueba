@@ -19,11 +19,16 @@ return new class extends Migration
             $table->date('fecha_nac_es');
             $table->boolean('genero_es')->default(1);
             $table->string('ci_es', 20);
-            $table->integer('rude_es')->unique();
+            $table->string('rude_es', 20)->unique();
             $table->boolean('estado_es')->default(1);
 
             $table->unsignedBigInteger('id_curso');
             $table->foreign('id_curso')->references('id')->on('cursos')->onDelete('cascade');
+
+            $table->unsignedBigInteger('id_tutor'); // FK a usuarios (tutor)
+            $table->foreign('id_tutor')->references('id')->on('users')->onDelete('cascade');
+
+
 
             $table->timestamps();
         });

@@ -39,6 +39,8 @@
         </div>
     </div>
 </div>
+<div class="row">
+<div class="col-md-6">
 <div class="form group">
     {!! Form::label('estado', 'Estado:') !!}
     {!! Form::select('estado',[null => 'SELECCIONE ESTADO','0' => 'NO ACTIVO', '1' => 'ACTIVO'], null, [
@@ -47,4 +49,15 @@
     @error('estado')
     <span class="text-danger">{{ $message }}</span>
     @enderror
+</div>
+</div>
+<div class="col-md-6">
+        <div class="form-group">
+            {!! Form::label('id_gestion', 'Gestion:') !!}
+            {!! Form::select('id_gestion', $gestiones, $trimestre->id_gestion, ['class' => 'form-control']) !!}
+            @error('id_gestion')
+            <span class="text-danger">{{ $message }}</span>
+            @enderror
+        </div>
+    </div>
 </div>

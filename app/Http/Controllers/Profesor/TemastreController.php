@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Asignatura;
 use App\Models\Profesor_asignatura;
 use App\Models\Profesore;
+use App\Models\Tema;
 use App\Models\Temas;
 use App\Models\Trimestre;
 use App\Models\User;
@@ -18,52 +19,27 @@ class TemastreController extends Controller
     {
         $this->middleware('auth');
     }
-    public function index(Request $request)
-    {
-        if (Auth::check()) {
-            $prof = Profesore::where('id_user', Auth::id())->first();
-            $asig = Profesor_asignatura::where('id_profesor',$prof->id)->first();
-            $temas = Temas::where('id_curso',$asig->id_curso)->get();
 
 
-            return view('profesor.temas.index', compact('temas'));
-        } else {
-            // Si el usuario no está autenticado, cerrar sesión y redirigir
-            Auth::logout();
-            return redirect()->route('login')->with('error', 'Debe iniciar sesión.');
-        }
-    }
-    public function show(string $id)
-    {
-        if (Auth::check()) {
-
-            $tema = Temas::find($id);
-            if (!$tema) {
-                return response()->json(['message' => 'Tema no encontrado'], 404);
-            }
-            // Devuelve los detalles del trimestre en una vista parcial o JSON
-            return view('profesor.temas.show', compact('tema'))->render();
-        } else {
-            // Si el usuario no está autenticado, cerrar sesión y redirigir
-            Auth::logout();
-            return redirect()->route('login')->with('error', 'Debe iniciar sesión.');
-        }
-    }
-    public function edit($id)
-    {
-        $tema = Temas::findOrFail($id);
-        $asignatura = Asignatura::pluck('nombre_asig', 'id');
-        $trimestre = Trimestre::pluck('periodo', 'id');
-        return view('profesor.temas.edit', compact('tema', 'asignatura', 'trimestre'));
-    }
     public function update(Request $request, $id)
+
     {
-        $tema = Temas::findOrFail($id);
+        $request->validate(
+                [
+                    'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    'titulo' => 'required',
+                    'detalle' => 'required'
+                ],[
+                    'titulo.required' => 'Titulo es requerido',
+                    'detalle.required'=> 'Campo detalle es requerido'
+                ]
+            );
+        $tema = Tema::findOrFail($id);
         $tema->titulo = $request->titulo;
         $tema->detalle = $request->detalle;
 
         $tema->video = $request->video;
-        $tema->estado = $request->estado;
+        $tema->estado = 1;
         $tema->id_asignatura = $request->id_asignatura;
         $tema->id_trimestre = $request->id_trimestre;
 
@@ -83,30 +59,11 @@ class TemastreController extends Controller
 
         $tema->update();
 
-        return response()->json(['success' => true, 'message' => 'Tema actualizado correctamente']);
+        //return redirect()->route('profesor.contenidos.index')->with('guardar', 'ok');
+        return response()->json(['success' => true, 'message' => 'tema actualizado correctamente']);
+
     }
 
-    public function create()
-    {
-        //
-        if (Auth::user()) {
-            $profe = Profesore::where('id_user', Auth::id())->first();
-            // Filtra las asignaturas según las asignaciones del profesor
-            $asignatura = Asignatura::join('profesor_asignaturas', 'asignaturas.id', '=', 'profesor_asignaturas.id_asignatura')
-                ->where('profesor_asignaturas.id_profesor', $profe->id)
-                ->pluck('asignaturas.nombre_asig', 'asignaturas.id')
-                ->prepend('SELECCIONE ASIGNATURA', '');
-
-
-
-            $trimestre = Trimestre::where('estado',1)->pluck('periodo', 'id');
-
-            return view('profesor.temas.create', compact('asignatura', 'trimestre'));
-        } else {
-            Auth::logout();
-            return redirect()->back();
-        }
-    }
 
     public function store(Request $request)
     {
@@ -115,26 +72,30 @@ class TemastreController extends Controller
             $request->validate(
                 [
                     'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-
+                    'titulo' => 'required',
+                    'detalle' => 'required'
+                ],[
+                    'titulo.required' => 'Titulo es requerido',
+                    'detalle.required'=> 'Campo detalle es requerido'
                 ]
             );
-            // Obtener los estudiantes y sus asistencias
-            $paralelo = User::join('profesores', 'profesores.id_user', '=', 'users.id')
-                ->join('profesor_asignaturas', 'profesor_asignaturas.id_profesor', '=', 'profesores.id')
-                ->where('profesores.id_user', Auth::user()->id)
+
+            $paralelo = User::join('profesor_asignaturas', 'profesor_asignaturas.id_profesor', '=', 'users.id')
+                ->where('users.id', Auth::user()->id)
                 ->select('profesor_asignaturas.id_curso')
                 ->first();
 
             $idParalelo = $paralelo ? $paralelo->id_curso : null;
 
-            $tema = new Temas();
+            $tema = new Tema();
             $tema->titulo = $request->titulo;
             $tema->detalle = $request->detalle;
             $tema->video = $request->video;
-            $tema->estado = $request->estado;
+            $tema->estado = 1;
             $tema->id_asignatura = $request->id_asignatura;
             $tema->id_trimestre = $request->id_trimestre;
             $tema->id_curso = $idParalelo;
+            $tema->avance = 0;
 
             if ($request->hasFile('imagen')) {
                 $imagen = $request->file('imagen');
@@ -152,20 +113,35 @@ class TemastreController extends Controller
 
             $tema->save();
 
-            return redirect()->route('profesor.temas.index')->with('guardar', 'ok');
+            return redirect()->route('profesor.contenidos.index')->with('guardar', 'ok');
         } else {
             Auth::logout();
             return redirect()->back();
         }
     }
-
-    public function destroy(string $id)
+    public function marcarAvance(Request $request)
     {
-        $tema = Temas::find($id);
+        $tema = Tema::findOrFail($request->id);
+
+        $tema->avance = $request->estado ? 1 : 0; // 1 avanzado, 0 pendiente
+        $tema->save();
+
+        return response()->json(['success' => true]);
+    }
+    public function edit($id)
+    {
+        $tema = Tema::findOrFail($id);
+        return view('profesor.temas.edit', compact('tema'));
+    }
+
+    public function destroy($id)
+    {
+        $tema = Tema::find($id);
         if ($tema) {
             $tema->delete();
-            return response()->json(['success' => true, 'message' => 'Tema eliminado correctamente']);
+            return response()->json(['success' => true, 'message' => 'tema eliminado correctamente']);
         }
-        return response()->json(['success' => false, 'message' => 'Tema no encontrado']);
+        return response()->json(['success' => false, 'message' => 'tema no encontrado']);
     }
+
 }

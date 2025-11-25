@@ -91,24 +91,24 @@
         </thead>
         <tbody>
             @foreach ($estudiantes as $estudiante)
-            <tr>
-                <td>{{ $estudiante->id }}</td>
-                <td>{{ $estudiante->nombres_es }} {{ $estudiante->apellidos_es }}</td>
-                @foreach ($fechas as $fecha)
-                @php
-                // Crear la clave para acceder a las asistencias
-                $key = $estudiante->id . '_' . $fecha->format('Y-m-d');
-                $asistencia = $asistenciasAgrupadas->get($key); // Buscar la asistencia por la clave
-                @endphp
-                <td>
-                    @if ($asistencia)
-                    {{ ucfirst($asistencia->first()->estado) }} <!-- Mostrar el estado de la asistencia -->
-                    @else
-                    0 <!-- No hay asistencia registrada -->
-                    @endif
-                </td>
-                @endforeach
-            </tr>
+                <tr>
+                    <td>{{ $estudiante->id }}</td>
+                    <td>{{ $estudiante->nombres_es }} {{ $estudiante->apellidos_es }}</td>
+                    @foreach ($fechas as $fecha)
+                        @php
+                        // Crear la clave para acceder a las asistencias
+                        $key = $estudiante->id . '_' . $fecha->format('Y-m-d');
+                        $asistencia = $asistenciasAgrupadas->get($key); // Buscar la asistencia por la clave
+                        @endphp
+                        <td>
+                            @if ($asistencia)
+                            {{ ucfirst($asistencia->first()->estado) }} <!-- Mostrar el estado de la asistencia -->
+                            @else
+                            0 <!-- No hay asistencia registrada -->
+                            @endif
+                        </td>
+                    @endforeach
+                </tr>
             @endforeach
         </tbody>
     </table>

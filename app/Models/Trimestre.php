@@ -8,11 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 class Trimestre extends Model
 {
     use HasFactory;
-    protected $fillable = ['periodo', 'fecha_inicio', 'fecha_fin', 'estado','id_gestion'];
-    
-    public function gestion()
+    protected $fillable = ['periodo', 'fecha_inicio', 'fecha_fin', 'estado', 'id_gestion'];
+
+    public function notas()
     {
-        return $this->belongsTo(Gestion::class, 'id_gestion');
+        return $this->hasMany(Nota::class, 'trimestre_id');
     }
 
+    public function gestion()
+    {
+        return $this->belongsTo(Gestion::class, 'id_gestion', 'id');
+    }
+    public function notasDetalle()
+    {
+        return $this->hasMany(NotaDetalle::class, 'id_trimestre');
+    }
 }

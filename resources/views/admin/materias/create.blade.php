@@ -49,7 +49,7 @@
                     <span class="text-danger">{{ $message }}</span>
                     @enderror
                 </div>
-
+<br>
                 <div class="card-footer ">
                     <center>
                         <a class='btn btn-danger  btn-sm href' href="{{ route('admin.materias.index') }}" data-toggle="tooltip" data-placement="top" title="Cancelar">

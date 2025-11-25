@@ -43,6 +43,39 @@
 @endpush
 
 @section('content_header')
+<style>
+    .colored-toast.swal2-icon-success {
+        background-color: #a5dc86 !important;
+    }
+
+    .colored-toast.swal2-icon-error {
+        background-color: #f27474 !important;
+    }
+
+    .colored-toast.swal2-icon-warning {
+        background-color: #f8bb86 !important;
+    }
+
+    .colored-toast.swal2-icon-info {
+        background-color: #3fc3ee !important;
+    }
+
+    .colored-toast.swal2-icon-question {
+        background-color: #87adbd !important;
+    }
+
+    .colored-toast .swal2-title {
+        color: white;
+    }
+
+    .colored-toast .swal2-close {
+        color: white;
+    }
+
+    .colored-toast .swal2-html-container {
+        color: white;
+    }
+</style>
 <div class="container-fluid">
     <div class="row mb-2 align-items-center">
         <div class="col-sm-6">
@@ -93,9 +126,9 @@
 
             <div class="col-lg-4 col-md-6 ms-auto text-end">
                 <a href="{{ route('admin.trimestres.index') }}" 
-                   class="btn btn-dark btn-lg" 
-                   data-bs-toggle="tooltip" 
-                   title="Gestionar Trimestres">
+                class="btn btn-dark btn-lg" 
+                data-bs-toggle="tooltip" 
+                title="Gestionar Trimestres">
                     <i class="fas fa-calendar-alt"></i> Trimestres
                 </a>
             </div>
@@ -132,14 +165,13 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h5 class="mb-1 fw-bold">{{ $trimestre->periodo }}</h5>
-                                        @if($trimestre->estado == 1)
-                                            <span class="badge bg-success badge-status">
-                                                <i class="fas fa-check-circle"></i> ACTIVO
-                                            </span>
+
+                                        @if ($trimestre->estado == 1)
+                                        <span class="badge badge-pill badge-success ">ACTIVO</span>
+                                        @elseif ($trimestre->estado == 0)
+                                        <span class="badge badge-pill badge-danger">NO ACTIVO</span>
                                         @else
-                                            <span class="badge bg-danger badge-status">
-                                                <i class="fas fa-times-circle"></i> INACTIVO
-                                            </span>
+                                        <span class="badge bg-warning">No permitido</span>
                                         @endif
                                     </div>
                                     <div class="action-buttons">
@@ -193,16 +225,16 @@
 
 <!-- Modal Editar Trimestre -->
 <div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
+            <div class="modal-header">
                 <h5 class="modal-title" id="editarUsuarioLabel">
-                    <i class="fas fa-edit"></i> Editar Trimestre
+                    Editar Trimestre
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <a href="#" class="btn btn-link" data-bs-dismiss="modal">X</a>
             </div>
             <div class="modal-body" id="modal-body-content">
-                <div class="text-center py-4">
+                <div class="text-center">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
@@ -212,10 +244,98 @@
         </div>
     </div>
 </div>
+
+
 @stop
 @section('js')
+<!-- Cargar jQuery primero -->
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 
-<!-- SCRIP EDITAR USUARIO-->
+<!-- Luego cargar Bootstrap (se recomienda el bundle para incluir Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Cargar DataTables después de jQuery y Bootstrap -->
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Cargar SweetAlert2 -->
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function eliminarUsuario(userId) {
+        // Mostrar confirmación antes de eliminar
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ route("admin.tutores.destroy", ":id") }}'.replace(':id', userId),
+                    type: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Mostrar notificación de éxito como Toast
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-right',
+                                iconColor: 'white',
+                                customClass: {
+                                    popup: 'colored-toast'
+                                },
+                                showConfirmButton: false,
+                                timer: 1500,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                                }
+                            });
+
+                            Toast.fire({
+                                icon: 'success',
+                                title: 'Usuario eliminado exitosamente'
+                            });
+
+                            // Eliminar la fila correspondiente de la tabla
+                            $('#usuario-' + userId).remove();
+                        } else {
+                            // Mostrar Toast de error si la eliminación falla
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message,
+                                toast: true,
+                                position: 'top-right',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hubo un error al intentar eliminar el usuario',
+                            toast: true,
+                            position: 'top-right',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                });
+            }
+        });
+    }
+</script>
 <script>
     function abrirModalEditar(userId) {
         // Abrir el modal
@@ -251,38 +371,40 @@
             data: formData,
             processData: false,
             contentType: false,
-            success: function(response) {
-              success: function(response) {
-    $('#editarUsuarioModal').modal('hide');
-    Swal.fire({
-        icon: 'success',
-        title: response.message,
-        toast: true,
-        position: 'top-right',
-        showConfirmButton: false,
-        timer: 1500,
-        timerProgressBar: true
-    });
-    setTimeout(() => location.reload(), 1000);
-},
-
+        
+        success: function(response) {
+                $('#editarUsuarioModal').modal('hide');
+                location.reload(); // Recargar la página para ver los cambios (opcional)
+                // Aquí puedes usar un SweetAlert para notificar al usuario
+                $('#usuario-' + response.id).replaceWith(response.html);
             },
-            error: function(xhr) {
-    if (xhr.status === 422) {
-        let errors = xhr.responseJSON.errors;
-        let messages = '';
-        $.each(errors, function(key, value) {
-            messages += '<li>' + value[0] + '</li>';
-        });
-        Swal.fire({
-            icon: 'error',
-            title: 'Errores de validación',
-            html: '<ul style="text-align:left;">' + messages + '</ul>'
-        });
-    } else {
-        Swal.fire('Error', 'No se pudo actualizar el trimestre', 'error');
-    }
-}
+    
+        error: function(xhr) {
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar el trimestre.'
+                });
+            }
+        }
 
         });
     });

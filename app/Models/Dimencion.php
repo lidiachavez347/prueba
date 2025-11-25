@@ -10,7 +10,9 @@ class Dimencion extends Model
     use HasFactory;
     protected $fillable = ['nombre', 'ponderacion'];
 
-    public function notas(){
-        return $this->hasMany(Nota::class,'id');
+
+    public function notas()
+    {
+        return $this->hasMany(Nota::class, 'id_dimencion', 'id');
     }
 }

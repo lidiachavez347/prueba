@@ -24,22 +24,22 @@
                 <div class="row">
                     <div class="col-md-6">
                         <strong>Género:</strong>
-                        <p>{{ $estudiante->genero_es == '1' ? 'Masculino' : 'Femenino' }}</p>
+                        <p>{{ $estudiante->genero_es == '1' ? 'MASCULINO' : 'FEMENINO' }}</p>
                     </div>
                     <div class="col-md-6">
                         <strong>Curso:</strong>
-                        <p>{{ $estudiante->curso->nombre_curso }}</p> <!-- Asume que tienes la relación con el curso -->
+                        <p>{{ $estudiante->curso->nombre_curso }} {{ $estudiante->curso->paralelo }} - {{ $estudiante->curso->gestion->gestion }}</p> <!-- Asume que tienes la relación con el curso -->
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6">
                     <strong>Estado:</strong>
-                   
-                    <span class="badge badge-{{ $grado->estado_es ? 'success' : 'danger' }}">
-                        {{ $grado->estado_es ? 'ACTIVO' : 'NO ACTIVO' }}
+
+                    <span class="badge badge-pill badge-{{ $estudiante->estado_es ? 'success' : 'danger' }}">
+                        {{ $estudiante->estado_es ? 'ACTIVO' : 'NO ACTIVO' }}
                     </span>
-           
+
                     </div>
                     <div class="col-md-6">
                         <strong>Imagen:</strong>
@@ -69,12 +69,13 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><strong>Nombre completo : </strong>{{ $tutor->nombres }} {{ $tutor->apellidos }}</h5>
                                         <p class="card-text"><strong>Teléfono:</strong> {{ $tutor->telefono }}</p>
+                                        <p class="card-text"><strong>Email:</strong> {{ $tutor->email }}</p>
                                         <p class="card-text"><strong>Direccion:</strong> {{ $tutor->direccion }}</p>
                                         <p class="card-text"><strong>Estado:</strong>
-                                            <span class="badge badge-{{ $grado->estado_user ? 'success' : 'danger' }}">
-                                                {{ $grado->estado_user ? 'ACTIVO' : 'NO ACTIVO' }}
-                                            </span>
-           
+                                            <span class="badge badge-pill badge-{{ $tutor->estado_user ? 'success' : 'danger' }}">
+                        {{ $tutor->estado_user ? 'ACTIVO' : 'NO ACTIVO' }}
+                    </span>
+
                                         </p>
                                     </div>
                                 </div>
@@ -85,35 +86,3 @@
                         @endforelse
                     </div>
                 </div>
-
-
-
-@section('css')
-<style>
-    .left {
-        float: left;
-        width: 50%;
-        /* Ajusta el ancho si es necesario */
-
-    }
-
-    .right {
-        float: right;
-        width: 10%;
-        /* Ajusta el ancho si es necesario */
-
-    }
-</style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-    integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
-
-@endsection
-
-@section('js')
-<script>
-    $(document).ready(function() {
-        // Puedes agregar algún script específico si lo necesitas
-    });
-</script>
-@endsection

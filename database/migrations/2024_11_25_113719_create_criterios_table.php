@@ -16,10 +16,13 @@ return new class extends Migration
             $table->id();
             $table->string('descripcion')->unique();
 
+            $table->unsignedBigInteger('id_dimencion');
+            $table->foreign('id_dimencion')->references('id')->on('dimencions')->onDelete('cascade');
+
             $table->timestamps();
         });
         
-      
+    
     }
 
     /**

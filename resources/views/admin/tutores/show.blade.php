@@ -14,6 +14,9 @@
             <b>Email:</b> <a href="mailto:{{ $usuario->email }}">{{ $usuario->email ?? 'N/A' }}</a> <br>
             <b>Dirección:</b> {{ $usuario->direccion ?? 'N/A' }} <br>
             <b>Teléfono:</b> {{ $usuario->telefono ?? 'N/A' }}
+            <p><strong>ESTADO:</strong><span class="badge badge-pill badge-{{ $usuario->estado_user ? 'success' : 'danger' }}">
+                        {{ $usuario->estado_user ? 'ACTIVO' : 'NO ACTIVO' }}
+                    </span></p>
         </div>
     </div>
 

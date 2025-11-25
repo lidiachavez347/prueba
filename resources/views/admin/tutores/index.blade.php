@@ -65,7 +65,7 @@
         <i class="fa fa-plus-circle" aria-hidden="true"></i> Nuevo</a>
 
         <a href="{{ route('admin.pdf.tutores') }}" class="btn btn-light" data-toggle="tooltip" data-placement="left" title="Exportar">
-    <i class="fa fa-upload" aria-hidden="true"></i>
+    <i class="fa fa-upload" aria-hidden="true"></i> Reporte
 </a>
 </div>
 
@@ -77,11 +77,13 @@
             <tr>
                 <th>ID</th>
                 <th>IMAGEN</th>
-                <th>NOMBRES Y APLLIDOS</th>
+                <th>NOMBRES Y APELLIDOS</th>
                 <TH>GENERO</TH>
                 <th>TELEFONO</th>
+                <TH>EMAIL</TH>
                 <TH>DIRECCION</TH>
                 <th>ESTADO</th>
+                <th>FECHA DE REGISTRO</th>
                 <th>ACCIONES</th>
             </tr>
         </thead>
@@ -90,7 +92,7 @@
 
             <tr id="usuario-{{ $usuario->id }}">
 
-                <td>{{ $usuario->id }}</td>
+                <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
                 <td>
                     <img src="{{ asset('images/' . $usuario->imagen) }}" alt="Imagen de usuario" style="width: 40px; height: 40px;">
                 </td>
@@ -106,6 +108,7 @@
                     @endif
                 </td>
                 <td>{{ $usuario->telefono }}</td>
+                <td>{{ $usuario->email }}</td>
                 <td>{{ $usuario->direccion }}</td>
                 <td width="70px" style="text-align: right">
                     @if ($usuario->estado_user == 1)
@@ -116,6 +119,7 @@
                     <span class="badge bg-warning">No permitido</span>
                     @endif
                 </td>
+                <td> {{ $usuario->created_at }}</td>
                 <td>
                     <!--- BOTON VER--->
                     <a href="#"
@@ -353,9 +357,32 @@
                 $('#usuario-' + response.id).replaceWith(response.html);
             },
             error: function(xhr) {
-                console.error(xhr.responseText);
-                Swal.fire('Error', 'No se pudo actualizar el usuario', 'error');
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar el tutor.'
+                });
             }
+        }
+
         });
     });
 </script>

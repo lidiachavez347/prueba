@@ -17,18 +17,3 @@
 </div>
 {!! Form::close() !!}
 
-@section('js')
-
-<script>
-    $(document).ready(function(e) {
-        $('#imagen').change(function() {
-            let reader = new FileReader();
-            reader.onload = (e) => {
-                $('#imagenseleccionada').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(this.files[0]);
-
-        });
-    });
-</script>
-@endsection

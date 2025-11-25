@@ -8,6 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class QrLogin extends Model
 {
     use HasFactory;
-    protected $fillable = ['token','user_id','confirmed'];
+    protected $fillable = ['token','user_id','confirmed', 'expires_at','ip_address', 'user_agent'];
 
 }

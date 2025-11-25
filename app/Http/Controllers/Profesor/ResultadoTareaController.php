@@ -55,10 +55,12 @@ class ResultadoTareaController extends Controller
 
             $asignaturaId = $request->input('id_asignatura');
             $idTrimestre = $request->input('id_trimestre');
+
             $trimestres = Trimestre::where('estado', 1)->get();
 
             // Obtener las actividades filtradas por asignatura
-            $actividades = Actividades::where('id_trimestre', $idTrimestre)->where('id_curso', $idParalelo)->where('id_asignatura', $asignaturaId)->get();
+            $actividades = Actividades::where('id_trimestre', $idTrimestre)->where('id_curso', $idParalelo)
+            ->where('id_asignatura', $asignaturaId)->get();
 
 
 
@@ -195,7 +197,8 @@ class ResultadoTareaController extends Controller
             }
 
             //----------------------------------------ATLERTA
-            return view('profesor.resultadotarea.index', compact('trimestres', 'asignaturas', 'actividades', 'estudiantes', 'fechas'));
+            return view('profesor.resultadotarea.index', compact('trimestres', 'asignaturas', 'actividades', 
+            'estudiantes', 'fechas'));
 
             // return view('profesor.resultadotarea.index', compact('estudiantes','actividades','materias', 'materiaSeleccionada', 'notas'));
         } else {

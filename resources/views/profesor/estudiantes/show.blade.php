@@ -63,7 +63,7 @@
                     </div>
                     <div class="col-md-6">
                         <strong>Curso:</strong>
-                        <p>{{ $estudiante->curso->nombre_curso }}</p> <!-- Asume que tienes la relación con el curso -->
+                        <p>{{ $estudiante->curso->nombre_curso }} {{ $estudiante->curso->paralelo }}</p> <!-- Asume que tienes la relación con el curso -->
                     </div>
                 </div>
 
@@ -107,7 +107,7 @@
                                         <h5 class="card-title"><strong>Nombre completo : </strong>{{ $tutor->nombres }} {{ $tutor->apellidos }}</h5>
                                         <p class="card-text"><strong>Teléfono:</strong> {{ $tutor->telefono }}</p>
                                         <p class="card-text"><strong>Direccion:</strong> {{ $tutor->direccion }}</p>
-                                        <p class="card-text"><strong>Relación:</strong> {{ $tutor->relacion }}</p>
+                                        
                                         <p class="card-text"><strong>Estado:</strong>
                                             @if ($tutor->estado_user == 1)
                                             <span class="badge badge-success">Activo</span>

@@ -16,6 +16,10 @@ use App\Http\Controllers\Auth\QrLoginController;
 |
 */
 // Agrupando rutas de la API con el prefijo 'api'
+Route::post('/qr/generate', [QrLoginController::class, 'generate']);
+//3º CHECK DESDE LA LAPTOP
+Route::get('/qr/check/{token}', [QrLoginController::class, 'check']);
+
 Route::prefix('users')->group(function () {
     Route::get('/', [UserController::class, 'index']); // Listar usuarios
     Route::get('/{id}', [UserController::class, 'show']); // Obtener usuario por ID
@@ -27,4 +31,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/qr-sessions', [QrLoginController::class, 'list']);
+    Route::delete('/qr-sessions/{id}', [QrLoginController::class, 'destroy']);
+Route::get('/qr/status/{token}', [QrLoginController::class, 'checkStatus']);
+});

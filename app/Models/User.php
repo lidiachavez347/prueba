@@ -38,6 +38,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'qr_token',
+        'qr_url',
+        'last_login_at'
     ];
 
 
@@ -78,16 +80,35 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
-    //llave foranea
+    //llave foranea---------------------------------
     public function rol()
     {
         return $this->belongsTo(Role::class, 'id_rol');
     }
 
-    public function asignaciones()
+
+    public function profesorAsignaturas()
     {
         return $this->hasMany(Profesor_asignatura::class, 'id_profesor');
     }
+
+    public function cursos()
+    {
+        return $this->belongsToMany(Curso::class, 'profesor_asignaturas', 'id_profesor', 'id_curso')
+            ->withPivot('id_asignatura', 'estado');
+    }
+//-------------------------------?
+    public function asignaturas()
+    {
+        return $this->belongsToMany(Asignatura::class, 'profesor_asignaturas','id_profesor', 'id_asignatura')
+            ->withPivot('id_curso', 'estado');
+    }
+//-----------------------------
+    public function estudiantes()
+    {
+        return $this->hasMany(Estudiante::class, 'id_tutor');
+    }
+    //-----------------------------
     public function sendEmailVerificationNotification()
     {
         $this->notify(new CustomVerifyEmail);

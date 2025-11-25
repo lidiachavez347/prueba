@@ -6,6 +6,11 @@
 
 @section('content')
 <br>
+@if(session('error'))
+    <div class="alert alert-warning">{{ session('error') }}</div>
+@endif
+
+<br>
 <div class="row" style="margin: center">
     <div class="col-3">
     </div>
@@ -25,7 +30,9 @@
                             @foreach($profesores as $profesor)
                             <option value="{{ $profesor->id }}">{{ $profesor->nombres}} {{ $profesor->apellidos }}</option>
                             @endforeach
+
                         </select>
+                            @error('id_profesor') <span class="text-danger">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group">
@@ -33,19 +40,10 @@
                         <select name="id_curso" class="form-control">
                             <option value="">SELECCIONAR CURSO</option>
                             @foreach($cursos as $curso)
-                            <option value="{{ $curso->id }}">{{ $curso->nombre_curso }} - {{ $curso->paralelo }}</option>
+                            <option value="{{ $curso->id }}">{{ $curso->nombre_curso }} - {{ $curso->paralelo }} - {{ $curso->gestion->gestion }}</option>
                             @endforeach
                         </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Seleccionar Nivel:</label>
-                        <select name="id_nivel" class="form-control">
-                            <option value="">SELECCIONAR NIVEL</option>
-                            @foreach($niveles as $nivel)
-                            <option value="{{ $nivel->id }}">{{ $nivel->nivel }} - {{ $nivel->turno }}</option>
-                            @endforeach
-                        </select>
+                            @error('id_curso') <span class="text-danger">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="form-group">
@@ -54,6 +52,7 @@
                         <input type="checkbox" name="asignaturas[]" value="{{ $asignatura->id }}">
                         {{ $asignatura->nombre_asig }}<br>
                         @endforeach
+                        @error('asignaturas') <span class="text-danger">{{ $message }}</span> @enderror
                     </div>
 
                 </div>

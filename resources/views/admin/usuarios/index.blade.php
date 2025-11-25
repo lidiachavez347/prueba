@@ -59,13 +59,31 @@
 @stop
 @section('content')
 
+@if(Auth::check() && session('qr_token'))
+<script>
+    let token = "{{ session('qr_token') }}";
+
+    // Polling cada 3 segundos para verificar si la sesión QR fue eliminada
+    setInterval(() => {
+        fetch(`/api/qr/status/${token}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.logout) {
+                    console.log("Sesión eliminada desde celular. Cerrando laptop...");
+                    window.location.href = '/logout'; // cerrar sesión
+                }
+            })
+            .catch(err => console.error("Error verificando QR token:", err));
+    }, 3000);
+</script>
+@endif
 
 <div class="modal-footer">
     <a href="{{ route('admin.usuarios.create') }}" class="btn btn-dark" data-toggle="tooltip" data-placement="left" title="Adicionar">
         <i class="fa fa-plus-circle" aria-hidden="true"></i> Nuevo</a>
 
         <a href="{{ route('admin.pdf.usuarios') }}" class="btn btn-light" data-toggle="tooltip" data-placement="left" title="Exportar">
-        <i class="fa fa-upload" aria-hidden="true"></i></a>
+        <i class="fa fa-upload" aria-hidden="true"></i> Reporte</a>
 </div>
 
 <br>
@@ -77,11 +95,14 @@
                 <th>ID</th>
 
                 <th>IMAGEN</th>
-                <th>qr</th>
-                <th>NOMBRES Y APLLIDOS</th>
+                <!--<th>qr</th>-->
+                <th>NOMBRES Y APELLIDOS</th>
                 <TH>GENERO</TH>
+                <th>TELEFONO</th>
                 <th>ROL</th>
+                <th>EMAIL</th>
                 <th>ESTADO</th>
+                <th>FECHA DE REGISTRO</th>
                 <th>ACCIONES</th>
             </tr>
         </thead>
@@ -90,16 +111,15 @@
 
             <tr id="usuario-{{ $usuario->id }}">
 
-                <td>{{ $usuario->id }}</td>
+            <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
                 <td>
                     <img src="{{ asset('images/' . $usuario->imagen) }}" alt="Imagen de usuario" style="width: 40px; height: 40px;">
-                </td>
-                
-<td>
+                </td>   
+{{--<td>
     {!! QrCode::size(100)->generate(url('/login/qr/' . $usuario->qr_token)) !!}
     <br>
     {{ url('/login/qr/' . $usuario->qr_token) }}
-</td>
+</td>--}}
 
 
                 <td><a href="#">{{ $usuario->nombres }} {{ $usuario->apellidos }}</a></td>
@@ -112,12 +132,14 @@
                     <span class="badge badge-pill badge-warning">No permitido</span>
                     @endif
                 </td>
+                <td>{{ $usuario->telefono }}</td>
                 <td> @if (!empty($usuario->getRoleNames()))
                     @foreach($usuario->getRoleNames() as $rolName)
                     {{$rolName}}
                     @endforeach
                     @endif
                 </td>
+                <td>{{ $usuario->email }} </td>
                 <td width="70px" style="text-align: right">
                     @if ($usuario->estado_user == 1)
                     <span class="badge badge-pill badge-success ">ACTIVO</span>
@@ -127,6 +149,7 @@
                     <span class="badge bg-warning">No permitido</span>
                     @endif
                 </td>
+                <td>{{ $usuario->created_at }}</td>
                 <td>
                     <!--- BOTON VER--->
                     <a href="#"
@@ -190,6 +213,7 @@
                 </td>
             </tr>
             @endforeach
+
         </tbody>
     </table>
 </div>
@@ -364,9 +388,31 @@
                 $('#usuario-' + response.id).replaceWith(response.html);
             },
             error: function(xhr) {
-                console.error(xhr.responseText);
-                Swal.fire('Error', 'No se pudo actualizar el usuario', 'error');
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar el Usuario.'
+                });
             }
+        }
         });
     });
 </script>
@@ -409,6 +455,9 @@
         title: 'Guardado exitosamente!'
     })
 </script>
+
+
+
 @endif
 
 

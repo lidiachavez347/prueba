@@ -72,25 +72,29 @@
         <thead class="bg-dark text-white">
             <tr>
                 <th>ID</th>
-                <th>TURNO</th>
+                <th>CURSO</th>
+                <th>PARALELO</th>
                 <th>GESTION</th>
                 <th>ESTADO</th>
+                <th>FECHA DE REGISTRO</th>
                 <TH>ACCIONES</TH>
             </tr>
         </thead>
         <tbody>
             @foreach ($grados as $grado)
             <tr id="permiso-{{ $grado->id }}">
-                <td>{{ $grado->id }}</td>
+                <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
                 <td>{{ $grado->nombre_curso }}</td>
                 <td>{{ $grado->paralelo }}</td>
+                <td>{{ $grado->gestion->gestion }}</td>
 
                 <td width="70px" class="text-end">
-                    <span class="badge badge-{{ $grado->estado_curso ? 'success' : 'danger' }}">
+                    
+                    <span class="badge badge-pill badge-{{ $grado->estado_curso ? 'success' : 'danger' }}">
                         {{ $grado->estado_curso ? 'ACTIVO' : 'NO ACTIVO' }}
                     </span>
                 </td>
-
+                <td>{{ $grado->created_at }}</td>
                 <td>
 
                     <!-- Botón para ver detalles del permiso -->
@@ -256,7 +260,7 @@
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'No se pudo eliminar el tema', 'error');
+                        Swal.fire('Error', 'No se pudo eliminar el grado', 'error');
                     }
                 });
             }
@@ -310,9 +314,31 @@
                 $('#usuario-' + response.id).replaceWith(response.html);
             },
             error: function(xhr) {
-                console.error(xhr.responseText);
-                Swal.fire('Error', 'No se pudo actualizar el nivel', 'error');
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar el grado.'
+                });
             }
+        }
         });
     });
 </script>

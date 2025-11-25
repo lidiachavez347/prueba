@@ -1,6 +1,6 @@
 {!! Form::model($trimestre,['route' => ['admin.trimestres.update',$trimestre->id],'method'=>'PUT', 'enctype' => 'multipart/form-data', 'id' => 'form-editar']) !!}
 
-   @csrf
+    @csrf
     @method('PUT')
 @include('admin.trimestres.partials.form')
 <br>

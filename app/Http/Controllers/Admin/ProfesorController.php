@@ -11,6 +11,11 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use PDF;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\Http;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Str;
+
 
 class ProfesorController extends Controller
 {
@@ -68,11 +73,57 @@ class ProfesorController extends Controller
                 'ci' => 'required',
                 'telefono' => 'required',
                 'fecha_nac' => 'required|date',
-                'email' => 'required',
+                'email' => [
+                        'required',
+                        'email',
+                        'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/i',
+                        'unique:users,email',
+                    ],
                 'password' => 'required',
-            ]
-        );
+                ], [
+        // Imagen
+        'imagen.image' => 'El archivo debe ser una imagen válida.',
+        'imagen.mimes' => 'La imagen debe ser en formato: jpeg, png, jpg o gif.',
+        'imagen.max' => 'La imagen no puede superar los 2 MB.',
 
+        // Datos personales
+        'nombres.required' => 'Los nombres son obligatorios.',
+        'apellidos.required' => 'Los apellidos son obligatorios.',
+        'genero.required' => 'Debe seleccionar un género.',
+        'direccion.required' => 'La dirección es obligatoria.',
+        'estado_user.required' => 'Debe seleccionar un estado.',
+        'ci.required' => 'El número de CI es obligatorio.',
+        'telefono.required' => 'El teléfono es obligatorio.',
+
+        // Fecha nacimiento
+        'fecha_nac.required' => 'La fecha de nacimiento es obligatoria.',
+        'fecha_nac.date' => 'Debe ingresar una fecha válida.',
+
+        // Email
+        'email.required' => 'El correo electrónico es obligatorio.',
+        'email.email' => 'Debe ingresar un correo válido.',
+        'email.regex' => 'El correo debe ser una cuenta Gmail (@gmail.com).',
+        'email.unique' => 'El correo ya está registrado.',
+
+        // Password
+        'password.required' => 'La contraseña es obligatoria.',
+    ]
+        );
+        //CHEQUEAR EL GMAIL COM MAILBOXLAYER
+        $response = Http::get('https://apilayer.net/api/check', [
+            'access_key' => env('MAILBOXLAYER_KEY'),
+            'email' => $request->email,
+        ]);
+
+        $data = $response->json();
+        //VALIDAR RESPUESTA
+        if (!$data['format_valid'] || !$data['mx_found'] || !$data['smtp_check']) {
+            return back()
+                ->withErrors(['email' => 'El correo ingresado no parece existir o no es válido.'])
+                ->withInput();
+        }
+        //fin verificar el correo
+        $prueba = Role::find(2);
         // Crear usuario
         $user = new User();
         $user->nombres = strtoupper($request->nombres);
@@ -83,18 +134,38 @@ class ProfesorController extends Controller
         $user->estado_user = $request->estado_user;
 
         $user->password = Hash::make($request->password);
-        $user->id_rol = 2;
+        $user->id_rol =  $prueba->id;
         $user->ci = $request->ci;
         $user->telefono = $request->telefono;
         $user->fecha_nac = $request->fecha_nac;
-
+        $token = Str::uuid();
+        $user->qr_token = $token; //para inicio de sesion con QR
         if ($request->hasFile('imagen')) {
             $imagen = $request->file('imagen');
             $filename = time() . '.' . $imagen->getClientOriginalExtension();
             $imagen->move(public_path('images'), $filename);
             $user->imagen = $filename;
         }
+        //GUARDAR USUARIO
+        $user->save();
+        $user->roles()->sync($request->roles);
+        ///ENVIAR mensaje de verificacion de correo
+        $user->sendEmailVerificationNotification();
 
+        //eviar correo con las credenciales
+        //Mail::to($user->email)->send(new SendCredentialsMail($user, $password1));
+
+        //ENVIAR MENSAJE POR WHATSAP CON EL QR Y LA CONTRASEÑA
+        $user->password_visible = $request->password;
+        // Generar QR local
+        $fileNameqr = "qr_{$user->id}.png";
+        $qrPath = public_path("qr/{$fileNameqr}");
+        //INICAR SESION CON QR
+        $urlLogin = url("/login/qr/{$token}");
+        QrCode::format('png')->size(300)->generate($urlLogin, $qrPath);
+
+        // Enviar QR por WhatsApp
+        $this->enviarQrWhatsApp($user, $qrPath);
 
         return redirect()->route('admin.profesores.index')->with('success', 'Profesor creado correctamente');
     }
@@ -107,22 +178,7 @@ class ProfesorController extends Controller
         if (Auth::check()) {
             // Verifica si el usuario está autenticado
             // Obtener el profesor con la relación a la tabla 'profesores' y los roles
-            $profesor = User::join('profesores', 'users.id', '=', 'profesores.id_user')
-                ->join('roles', 'roles.id', '=', 'users.id_rol')
-                ->where('roles.name', 'Profesor')
-                ->where('users.id', $id) // Filtrar por el ID del profesor
-                ->select(
-                    'users.id',
-                    'users.nombres',
-                    'users.apellidos',
-                    'users.ci',
-                    'users.telefono',
-                    'users.email',
-                    'users.estado_user',
-                    'profesores.nivel',
-                    'users.direccion'
-                )
-                ->first();
+            $profesor = User::findorFail($id);
 
             // Verifica si el profesor fue encontrado
             if (!$profesor) {
@@ -144,29 +200,8 @@ class ProfesorController extends Controller
     public function edit(string $id)
     {
         if (Auth::user()) {
-            $profesor = Profesore::with('user')
-                ->whereHas('user', function ($query) use ($id) {
-                    $query->where('id', $id);
-                })
-                ->select(
-                    'profesores.nivel',
-                    'users.id',
-                    'users.nombres',
-                    'users.apellidos',
-                    'users.ci',
-                    'users.telefono',
-                    'users.direccion',
-                    'users.email',
-                    'users.estado_user',
-                    'users.imagen',
-                    'users.password',
-                    'users.id_rol',
-                    'users.genero',
-                    'users.fecha_nac'
-                )
-                ->join('users', 'profesores.id_user', '=', 'users.id')
-                ->first();
-                
+            $profesor = User::findOrFail($id);
+
             //dd($profesor);            // Obtener los roles disponibles para el dropdown
             $options = Role::where('name', 'Profesor')->pluck('name', 'id')->toArray();
             $roles = [null => "SELECCIONE ROL"] + $options;
@@ -197,9 +232,10 @@ class ProfesorController extends Controller
                 'genero' => 'required',
                 'direccion' => 'required',
                 'email' => [
-
+                    'required',
                     'email',
-                    Rule::unique('users')->ignore($user->id),
+                    'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/i',
+                    Rule::unique('users', 'email')->ignore($user->id),
                 ],
 
                 'estado_user' => 'required',
@@ -209,8 +245,36 @@ class ProfesorController extends Controller
                 'ci' => 'required',
                 'telefono' => 'required',
                 'fecha_nac' => 'required|date',
-            ]
+                'password' => 'required|string|min:8',
+            ],
+                [
+                    'nombres.required' => 'El campo nombres es obligatorio.',
+                    'apellidos.required' => 'El campo apellidos es obligatorio.',
+                    'genero.required' => 'Debe seleccionar un género.',
+                    'direccion.required' => 'La dirección es obligatoria.',
+                    'ci.required' => 'El número de cédula es obligatorio.',
+                    'telefono.required' => 'El teléfono es obligatorio.',
+                    'fecha_nac.required' => 'Debe ingresar la fecha de nacimiento.',
+
+                    'email.required' => 'El correo electrónico es obligatorio.',
+                    'email.email' => 'Debe ingresar un correo electrónico válido.',
+                    'email.regex' => 'Solo se permiten correos con dominio @gmail.com.',
+                    'email.unique' => 'Este correo ya está registrado.',
+
+                    'estado_user.required' => 'Debe seleccionar un estado.',
+                    'roles.required' => 'Debe asignar un rol al usuario.',
+
+                    'imagen.image' => 'El archivo debe ser una imagen válida.',
+                    'imagen.mimes' => 'La imagen debe ser JPEG, PNG, JPG o GIF.',
+                    'imagen.max' => 'La imagen no debe superar los 2 MB.',
+
+                    // Mensajes de contraseña
+                    'password.required' => 'La contraseña es requerida',
+                    'password.min' => 'La contraseña debe tener mínimo 8 caracteres.',
+                    //'password.regex' => 'La contraseña debe incluir mayúsculas, minúsculas, números y símbolos.',
+                ]
         );
+
         $prueba = Role::find($request->roles);
         // Actualizar datos del usuario
         $user = User::find($id);
@@ -233,13 +297,26 @@ class ProfesorController extends Controller
             $user->imagen = $filename;
         }
 
-        $user->update();
+        $password = $request->password;
+        $user->password = Hash::make($password);
 
-        // Actualizar datos del profesor
-        $profesor = Profesore::where('id_user', $user->id)->firstOrFail();
-        $profesor->nivel = $request->nivel;
-        $profesor->estado_prof = $request->estado_user;
-        $profesor->update();
+        // Generar un nuevo qr_token (puedes usar cualquier lógica para generarlo)
+        $token = Str::uuid();
+        $user->qr_token = $token; //para inicio de sesion con QR
+        //$user->qr_token = Str::random(30); // ejemplo con Str helper
+
+        // Guardar usuario con nueva contraseña y token
+        $user->update();
+        $user->roles()->sync($request->roles);
+        //ENVIAR MENSAJE POR WHATSAP CON EL QR Y LA CONTRASEÑA
+        $user->password_visible = $request->password;
+        $fileNameqr = "qr_{$user->id}.png";
+        $qrPath = public_path("qr/{$fileNameqr}");
+        //INICAR SESION CON QR
+        $urlLogin = url("/login/qr/{$token}");
+        QrCode::format('png')->size(300)->generate($urlLogin, $qrPath);
+        // Enviar QR por WhatsApp
+        $this->enviarQrWhatsApp($user, $qrPath);
 
 
 
@@ -263,10 +340,10 @@ class ProfesorController extends Controller
         if (Auth::check()) {
             // Obtener el estudiante con sus tutores relacionados
 
-            $usuarios = User::where('id_rol',2)->get();
+            $usuarios = User::where('id_rol', 2)->get();
             // Renderizar la vista de PDF con los datos
             $pdf = PDF::loadView('admin.pdf.profesores', compact('usuarios'));
-
+            $pdf->setPaper('letter', 'portrait'); 
             return $pdf->stream('profesores.pdf');
 
             // Descargar el PDF
@@ -275,6 +352,74 @@ class ProfesorController extends Controller
             // Si no está autenticado
             Auth::logout();
             return redirect()->route('login')->with('error', 'Debe iniciar sesión.');
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private function subirQr($qrPath)
+    {
+        $uploadedFile = Cloudinary::upload($qrPath, [
+            'folder' => 'qr_usuarios',
+            'overwrite' => true,
+            'resource_type' => 'image'
+        ]);
+
+        $url = $uploadedFile->getSecurePath(); // URL HTTPS pública
+        return $url;
+    }
+    private function enviarQrWhatsApp($user)
+    {
+        try {
+            $tokenBot = env('TEXMEBOT_API_TOKEN'); // Tu API key
+            $telefono = preg_replace('/[^0-9]/', '', $user->telefono); // Solo números
+            $telefono = '+591' . ltrim($telefono, '0');
+            // dd($telefono);
+            $mensaje = "👋 Bienvenido/a {$user->nombres}!\n\n" .
+                "Has sido registrado correctamente en el sistema académico 📚\n\n" .
+                "🔑 Contraseña: {$user->password_visible}\n" .
+                "📧 Correo: {$user->email}\n\n" .
+                "Atentamente,\nSistema de Gestión Académica";
+
+            //URL PUBLICA
+            // Subir QR a Cloudinary y obtener URL pública
+            $qrPathLocal = public_path("qr/qr_{$user->id}.png");
+            $qrUrl = $this->subirQr($qrPathLocal);
+            // Codificar mensaje para URL
+            $mensajeUrl = urlencode($mensaje);
+            // http://api.textmebot.com/send.php?recipient=[phone number]&apikey=[your premium apikey]&text=[text to send]
+
+            $url = "http://api.textmebot.com/send.php?recipient={$telefono}&apikey={$tokenBot}&text={$mensajeUrl}&file={$qrUrl}&json=yes";
+            // URL GET
+            // $url = "http://api.textmebot.com/send.php?recipient={$telefono}&apikey={$tokenBot}&text={$mensajeUrl}&json=yes";
+
+            // Hacer la petición GET
+            $response = Http::get($url);
+
+            // Revisar respuesta
+            if ($response->failed()) {
+                \Log::error('❌ Error al enviar WhatsApp: ' . $response->body());
+            } else {
+                \Log::info("✅ Mensaje enviado correctamente a {$telefono}");
+            }
+        } catch (\Exception $e) {
+            \Log::error('⚠️ Excepción al enviar WhatsApp: ' . $e->getMessage());
         }
     }
 }

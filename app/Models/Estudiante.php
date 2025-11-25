@@ -20,24 +20,34 @@ class Estudiante extends Model
         'rude_es',
         'estado_es',
         'id_curso',
+        'id_tutor'
     ];
-
-   public function tutores()
-{
-    // Relación muchos a muchos con User, usando la tabla pivote 'estudiante_tutors'
-    return $this->belongsToMany(User::class, 'estudiante_tutors', 'id_estudiante', 'id_tutor');
-}
 
     public function curso()
     {
         return $this->belongsTo(Curso::class, 'id_curso');
     }
 
-
     public function detalleAsistencias()
     {
         return $this->hasMany(DetalleAsistencia::class, 'user_id', 'id');
     }
+
+    public function tutor()
+    {
+        return $this->belongsTo(User::class, 'id_tutor','id');
+    }
+    public function notas()
+    {
+        return $this->hasMany(Nota::class, 'id_estudiante', 'id');
+    }
+
+public function notasDetalle()
+    {
+        return $this->hasMany(NotaDetalle::class, 'id_estudiante');
+    }
+
+
 
     public function calcularAsistencias($asistencias)
     {

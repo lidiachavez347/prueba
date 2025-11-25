@@ -107,6 +107,10 @@
                     <a href="{{ route('profesor.estudiantes.show', $estudiante->id) }}" class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="left" title="Ver">
                         <i class="fa fa-eye" aria-hidden="true"></i>
                     </a>
+                    <a href="{{ route('profesor.estudiantes.notas', $estudiante->id)}}" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="left" title="Notas">
+    <i class="fas fa-book-open"></i>
+</a>
+
 
                 </td>
             </tr>

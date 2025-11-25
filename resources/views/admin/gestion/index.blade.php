@@ -75,6 +75,7 @@
                 <th>ID</th>
                 <th>GESTION</th>
                 <th>ESTADO</th>
+                <th>FECHA DE REGISTRO</th>
                 <th>ACCIONES</th>
             </tr>
         </thead>
@@ -83,7 +84,7 @@
 
             <tr id="usuario-{{ $gestion->id }}">
 
-                <td>{{ $gestion->id }}</td>
+                <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
 
                 <td><a href="#">{{ $gestion->gestion }}</a></td>
 
@@ -96,6 +97,7 @@
                     <span class="badge bg-warning">No permitido</span>
                     @endif
                 </td>
+                <td>{{ $gestion->created_at }}</td>
                 <td>
                     <!--- BOTON VER--->
                     <a href="#"
@@ -341,11 +343,35 @@
                 $('#usuario-' + response.id).replaceWith(response.html);
             },
             error: function(xhr) {
-                console.error(xhr.responseText);
-                Swal.fire('Error', 'No se pudo actualizar el usuario', 'error');
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar la gestión.'
+                });
             }
+        }
         });
     });
+
+
 </script>
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -387,8 +413,6 @@
     })
 </script>
 @endif
-
-
 
 
 @endsection

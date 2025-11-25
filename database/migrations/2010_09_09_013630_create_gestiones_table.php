@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('estado')->default(1);
             $table->timestamps();
         });
-         DB::table('gestiones')->insert([
+        DB::table('gestiones')->insert([
             ['gestion' => 2024, 'estado' => 1,'created_at' => now(), 'updated_at' => now()],
 
         ]);

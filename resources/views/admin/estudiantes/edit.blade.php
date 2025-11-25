@@ -1,4 +1,4 @@
-{!! Form::model($estudiante, ['route' => ['admin.estudiantes.update', $estudiante->id], 'method' => 'PUT', 'enctype' => 'multipart/form-data']) !!}
+{!! Form::model($estudiante, ['route' => ['admin.estudiantes.update', $estudiante->id], 'method' => 'PUT', 'enctype' => 'multipart/form-data','id' => 'form-editar']) !!}
 <div class="card-body">
     <div class="row">
         <div class="col">

@@ -13,7 +13,15 @@
             <br>
             <b>Email:</b> <a href="mailto:{{ $usuario->email }}">{{ $usuario->email ?? 'N/A' }}</a> <br>
             <b>Dirección:</b> {{ $usuario->direccion ?? 'N/A' }} <br>
-            <b>Teléfono:</b> {{ $usuario->telefono ?? 'N/A' }}
+            <b>Teléfono:</b> {{ $usuario->telefono ?? 'N/A' }} <br>
+            <b>Estado:</b>
+            @if ($usuario->estado_user == 1)
+                    <span class="badge badge-pill badge-success ">ACTIVO</span>
+                    @elseif ($usuario->estado_user == 0)
+                    <span class="badge badge-pill badge-danger">NO ACTIVO</span>
+                    @else
+                    <span class="badge bg-warning">No permitido</span>
+                    @endif
         </div>
     </div>
 

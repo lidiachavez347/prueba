@@ -18,6 +18,9 @@
     @enderror
 </div>
 
+<input type="hidden" name="id_asignatura" value="{{ $tema->id_asignatura }}">
+    <input type="hidden" name="id_trimestre" value="{{ $tema->id_trimestre }}">
+    <input type="hidden" name="id_curso" value="{{ $tema->id_curso }}">
 
 <div class="row">
     <div class="col-md-6">
@@ -66,33 +69,16 @@
             {!! Form::file('imagen', ['class' => 'form-control']) !!}
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="form-group">
-            {!! Form::label('id_asignatura', 'Asignatura:') !!}
-            {!! Form::select('id_asignatura', $asignatura, null, ['class' => 'form-control']) !!}
-        </div>
-    </div>
-
 </div>
-<div class="row">
-    <div class="col">
+<script>
+    $(document).ready(function(e) {
+        $('#imagen').change(function() {
+            let reader = new FileReader();
+            reader.onload = (e) => {
+                $('#imagenseleccionada').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(this.files[0]);
 
-        <div class="form-group">
-            {!! Form::label('id_trimestre', 'Trimestre') !!}
-            {!! Form::select('id_trimestre', $trimestre, null, ['class' => 'form-control']) !!}
-        </div>
-
-    </div>
-    <div class="col">
-        <div class="form group">
-            {!! Form::label('estado', 'Estado:') !!}
-            {!! Form::select('estado', [null => 'SELECCIONE ESTADO', '0' => 'NO ACTIVO', '1' => 'ACTIVO'], null, [
-            'class' => 'form-control',
-            '',
-            ]) !!}
-            @error('estado')
-            <span class="text-danger">{{ $message }}</span>
-            @enderror
-        </div>
-    </div>
-</div>
+        });
+    });
+</script>

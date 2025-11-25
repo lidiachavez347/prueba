@@ -19,7 +19,7 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $role1 = Role::create(['name' => 'ADMIN', 'estado' => 1]);
+        $role1 = Role::create(['name' => 'DIRECTOR', 'estado' => 1]);
         $role2 = Role::create(['name' => 'PROFESOR', 'estado' => 1]);
         $role3 = Role::create(['name' => 'TUTOR', 'estado' => 1]);
         $role4 = Role::create(['name' => 'SECRETARIA', 'estado' => 1]);
@@ -114,7 +114,7 @@ class RoleSeeder extends Seeder
             'password' => bcrypt($password1),
             'qr_token' => $token1
         ]);
-        $user1->assignRole('ADMIN');
+        $user1->assignRole('DIRECTOR');
 
         // Enviar correo
         Mail::to($user1->email)->send(new SendCredentialsMail($user1, $password1));

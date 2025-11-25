@@ -29,6 +29,9 @@
                                 {!! Form::label('role'.$id, $role, ['class' => 'form-check-label']) !!}
                             </div>
                         @endforeach
+                        @error('roles')
+                            <span class="text-danger">{{ $message }}</span>
+                            @enderror
                     </div>
                 </div>
                 

@@ -55,6 +55,17 @@
                             @enderror
                         </div>
                     </div>
+                    <div class="col-md-6">
+
+                        <div class="form-group">
+                            {!! Form::label('id_gestion', 'Gestion:') !!}
+                            {!! Form::select('id_gestion', $gestiones, null, ['class' => 'form-control']) !!}
+                            @error('id_gestion')
+                            <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                    </div>
                 </div>
             </div>
 

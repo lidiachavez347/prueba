@@ -28,7 +28,19 @@
 @stop
 @section('content')
 
-<?php if (auth()->user()->hasRole('ADMIN')) { ?>
+<?php if (auth()->user()->hasRole('DIRECTOR')) { ?>
+    @if(auth()->user()->email_verified_at)
+        <span class="badge badge-success">Email Verificado</span>
+    @else
+        <span class="badge badge-warning">Pendiente</span>
+<br>
+        <!-- Botón para reenviar el correo de verificación -->
+        <form method="POST" action="{{ route('verification.send') }}">
+            @csrf
+            <button type="submit" class="btn btn-primary">Reenviar correo de verificación</button>
+        </form>
+        <br>
+    @endif
 
     <div class="container-fluid mt-3 d-block d-md-none">
     <div class="row justify-content-center">
@@ -38,13 +50,11 @@
                     <h5 class="card-title mb-2 text-primary">
                         <a href="#" class="text-decoration-none">
                         INICIAR SESION CON CODIGO QR
-                        SI YA ESTA INICIADA LA SESSION DAR OPCION A DESTRUIRLA PARA CERRAR SESRT
-                        MOSTRARLA SESION INICIADAACTUALMENTE
                         </a>
                     </h5>
-                    <p class="card-text text-muted mb-3">
+                <!--   <p class="card-text text-muted mb-3">
                         Escanear el código QR para iniciar sesión.
-                    </p>
+                    </p>*/-->
                     <a href="/auth/scan" class="btn btn-primary w-100">
                         Escanear QR
                     </a>
@@ -70,8 +80,8 @@
                         <i class="fas fa-user-graduate"></i>
                     </div>
 
-                    <a href="{{ route('admin.estudiantes.index') }}" class="small-box-footer"> mas information
-                        <i class="fas fa-arrow-circle-right"></i>
+                    <a href="#" class="small-box-footer">
+                        <i class="fas fa-arrow-circle-"></i>
                     </a>
                 </div>
             </div>
@@ -269,11 +279,11 @@
                         <div class="card">
                             <div class="card-header ui-sortable-handle" style="cursor: move;">
                                 <h3 class="card-title"> <i class="fas fa-chart-pie mr-1">
-                                    </i> datos</h3>
+                                    </i> Datos</h3>
                                 <div class="card-tools">
                                     <ul class="nav nav-pills ml-auto">
 
-                                        <li class="nav-item"><a href="#" class="nav-link">donut</a></li>
+                                        <li class="nav-item"><a href="#" class="nav-link">Torta</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -327,10 +337,10 @@
                         <div class="card">
                             <div class="card-header ui-sortable-handle" style="cursor: move;">
                                 <h3 class="card-title"> <i class="fas fa-chart-pie mr-1">
-                                    </i> datos</h3>
+                                    </i> Datos</h3>
                                 <div class="card-tools">
                                     <ul class="nav nav-pills ml-auto">
-                                        <li class="nav-item"><a href="#" class="nav-link">donut</a></li>
+                                        <li class="nav-item"><a href="#" class="nav-link">Torta</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -393,6 +403,20 @@
                         <script src="https://code.highcharts.com/highcharts.js"></script>
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
+                                // Convertir fechas a formato "Mes Año" en español
+
+                                    const fechasLiteral = @json($fechas).map(f => {
+                                        const fecha = new Date(f);
+
+                                        // Convertir a formato literal en español
+                                        return fecha.toLocaleDateString('es-ES', { 
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric'
+                                        });
+                                    });
+
+
                                 Highcharts.chart('container-asistencia', {
                                     chart: {
                                         type: 'line'
@@ -426,11 +450,6 @@
                                             color: '#dc3545' // Rojo
                                         },
                                         {
-                                            name: 'Tarde',
-                                            data: @json($tarde),
-                                            color: '#ffc107' // Amarillo
-                                        },
-                                        {
                                             name: 'Justificado',
                                             data: @json($justificados),
                                             color: '#17a2b8' // Azul
@@ -441,7 +460,8 @@
                         </script>
 
                     </div>
-                </div><!--
+                </div>
+            <!-- INICIO-->
                 <div class="card bg-gradient-sucess">
                     <div class="card-header border-0 ui-sortable-handle" style="cursor: move;"></div>
                     <div class="card-body pt-0" style="display: block;">
@@ -450,53 +470,98 @@
                                 <ul class="list-unstyled">
                                     <li class="show">
                                         <div class="datepicker">
+                                            <center><h3>Avance academico</h3></center>
                                             <div class="datepicker-days">
                                                 <table class="table table-sm">
                                                     <thead>
                                                         <tr>
-                                                            <th class="prev" data-action="previous">
-                                                                <span class="fa fa-chevron-left" title="mes anterior"></span>
-                                                            </th>
-                                                            <th class="picker-switch" data-action="pickerSwitch" colspan="5" title="seleccione mes">
-                                                                septiembre 2024
-                                                            </th>
-                                                            <th class="next" data-action="next">
-                                                                <span class="fa fa-chevron-right" title="siguente mes"></span>
-                                                            </th>
+                                                            <th>Profesor</th>
+                                                            <th>Curso</th>
+                                                            <th>Avance</th>
+                                                            <th>Acciones</th>
                                                         </tr>
-                                                        <tr>
-                                                            <th class="dow">lunes</th>
-                                                            <th class="dow">martes</th>
-                                                            <th class="dow">miercoles</th>
-                                                            <th class="dow">jueves</th>
-                                                            <th class="dow">viernes</th>
-                                                            <th class="dow">sabado</th>
-                                                            <th class="dow">domingo</th>
-                                                        </tr>
+                                                    
                                                     </thead>
                                                     <tbody>
+                                                            @foreach ($datos as $item)
+                                                                    <tr>
+                                                                        <td>{{ $item['profesor'] }}</td>
+                                                                        <td>{{ $item['curso'] }}</td>
 
+                                                                        <td>
+                                                                            <div class="progress">
+                                                                                <div class="progress-bar progress-bar-striped bg-success"
+                                                                                    role="progressbar"
+                                                                                    style="width: {{ $item['porcentaje'] }}%;"
+                                                                                    aria-valuenow="{{ $item['porcentaje'] }}"
+                                                                                    aria-valuemin="0" aria-valuemax="100">
+                                                                                    {{ $item['porcentaje'] }}%
+                                                                                </div>
+                                                                            </div>
+                                                                        </td>
+
+                                                                        <td>
+                                                                            <a href="{{ route('admin.contenidos.show', $item['id_profesor']) }}"
+                                                                            class="btn btn-info btn-sm">
+                                                                                <i class="fa fa-eye"></i>
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                            @endforeach
                                                     </tbody>
                                                 </table>
                                             </div>
-                                            <div class="datepicker-months" style="display: none;"></div>
-                                            <div class="datepicker"></div>
-                                            <div class="datepicker"></div>
                                         </div>
                                     </li>
-                                    <li class="picker-switch accordion-toggle"></li>
+                                
                                 </ul>
                             </div>
                         </div>
                     </div>
-                </div>-->
+                </div><!--FIN-->
             </section>
         </div>
     </div>
 <?php } ?>
+
 <?php if (auth()->user()->hasRole('PROFESOR')) {
     //dd(auth()->user()); // Verifica el usuario autenticado
 ?>
+    @if(auth()->user()->email_verified_at)
+        <span class="badge badge-success">Email Verificado</span>
+    @else
+        <span class="badge badge-warning">Pendiente</span>
+<br>
+        <!-- Botón para reenviar el correo de verificación -->
+        <form method="POST" action="{{ route('verification.send') }}">
+            @csrf
+            <button type="submit" class="btn btn-primary">Reenviar correo de verificación</button>
+        </form>
+        <br>
+    @endif
+
+    <div class="container-fluid mt-3 d-block d-md-none">
+    <div class="row justify-content-center">
+        <div class="col-11">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-2 text-primary">
+                        <a href="#" class="text-decoration-none">
+                        INICIAR SESION CON CODIGO QR
+                        </a>
+                    </h5>
+                <!--   <p class="card-text text-muted mb-3">
+                        Escanear el código QR para iniciar sesión.
+                    </p>*/-->
+                    <a href="/auth/scan" class="btn btn-primary w-100">
+                        Escanear QR
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
     <!-- Código para el profesor -->
     <div class="container-fluid">
         <div class="row">
@@ -540,8 +605,8 @@
                     <div class="icon">
                         <i class="fas fa-graduation-cap"></i>
                     </div>
-                    <a href="{{ route('profesor.asistencias.index') }}" class="small-box-footer">Más información
-                        <i class="fas fa-arrow-circle-right"></i>
+                    <a href="#" class="small-box-footer">
+                        <i class="fas fa-arrow-circle-"></i>
                     </a>
                 </div>
             </div>
@@ -556,10 +621,10 @@
                         <div class="card">
                             <div class="card-header ui-sortable-handle" style="cursor: move;">
                                 <h3 class="card-title"> <i class="fas fa-chart-pie mr-1">
-                                    </i> datos</h3>
+                                    </i> Datos</h3>
                                 <div class="card-tools">
                                     <ul class="nav nav-pills ml-auto">
-                                        <li class="nav-item"><a href="#" class="nav-link">donut</a></li>
+                                        <li class="nav-item"><a href="#" class="nav-link">Torta</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -619,16 +684,17 @@
                     <div class="card-body pt-0" style="display: block;">
                         <div id="container-asistencia" style="width:100%; height:330px;"></div>
 
-                        <script src="https://code.highcharts.com/highcharts.js"></script>
-                        <script>
+
+                            <script src="https://code.highcharts.com/highcharts.js"></script>
+
+                            <script>
                             document.addEventListener('DOMContentLoaded', function() {
-                                // Convertir las fechas a su formato de mes
-                                const fechasConMes = @json($fechas).map(fecha => {
-                                    const opciones = {
-                                        month: 'long',
-                                        day: 'numeric'
-                                    }; // Formato: mes día
-                                    return new Date(fecha).toLocaleDateString('es-ES', opciones);
+
+                                // Convertir 2025-01 → "enero 2025"
+                                const mesesFormateados = @json($fechas).map(mes => {
+                                    const p = mes.split('-');
+                                    const fecha = new Date(p[0], p[1] - 1, 1);
+                                    return fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
                                 });
 
                                 Highcharts.chart('container-asistencia', {
@@ -636,12 +702,12 @@
                                         type: 'line'
                                     },
                                     title: {
-                                        text: 'Asistencia mensual'
+                                        text: 'Asistencia Mensual de Estudiantes'
                                     },
                                     xAxis: {
-                                        categories: fechasConMes,
+                                        categories: mesesFormateados,
                                         title: {
-                                            text: 'Fecha'
+                                            text: 'Mes'
                                         }
                                     },
                                     yAxis: {
@@ -653,30 +719,15 @@
                                         shared: true,
                                         valueSuffix: ' asistencias'
                                     },
-                                    series: [{
-                                            name: 'Presente',
-                                            data: @json($presentes),
-                                            color: '#28a745' // Verde
-                                        },
-                                        {
-                                            name: 'Ausente',
-                                            data: @json($ausentes),
-                                            color: '#dc3545' // Rojo
-                                        },
-                                        {
-                                            name: 'Tarde',
-                                            data: @json($tarde),
-                                            color: '#ffc107' // Amarillo
-                                        },
-                                        {
-                                            name: 'Justificado',
-                                            data: @json($justificados),
-                                            color: '#17a2b8' // Azul
-                                        }
+                                    series: [
+                                        { name: 'Presente', data: @json($presentes), color: '#28a745' },
+                                        { name: 'Ausente', data: @json($ausentes), color: '#dc3545' },
+                                
+                                        { name: 'Justificado', data: @json($justificados), color: '#17a2b8' }
                                     ]
                                 });
                             });
-                        </script>
+                            </script>
 
 
                     </div>
@@ -736,115 +787,481 @@
 <?php } ?>
 <?php if (auth()->user()->hasRole('TUTOR')) {
     //dd(auth()->user()); // Verifica el usuario autenticado
-XXXX
 ?>
-@if($usuario->email_verified_at)
-    <span class="badge badge-success">✔ Verificado</span>
-@else
-    <span class="badge badge-warning">Pendiente</span>
-@endif
+                    <!-- Botón de cerrar sesión -->
+        @if(auth()->user()->email_verified_at)
+        <span class="badge badge-success">Email Verificado</span>
+    @else
+        <span class="badge badge-warning">Pendiente</span>
+<br>
+        <!-- Botón para reenviar el correo de verificación -->
+        <form method="POST" action="{{ route('verification.send') }}">
+            @csrf
+            <button type="submit" class="btn btn-primary">Reenviar correo de verificación</button>
+        </form>
+        <br>
+    @endif
+<div class="container-fluid mt-3 d-block d-md-none">
+    <div class="row justify-content-center">
+        <div class="col-11">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-2 text-primary">
+                        <a href="#" class="text-decoration-none">
+                        INICIAR SESION CON CODIGO QR
+                        </a>
+                    </h5>
+                <!--   <p class="card-text text-muted mb-3">
+                        Escanear el código QR para iniciar sesión.
+                    </p>*/-->
+                    <a href="/auth/scan" class="btn btn-primary w-100">
+                        Escanear QR
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        <div class="row">
+            <div class=" col-12">
+                <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <!-- Avatar / imagen (ruta local subida) -->
+                    <div class="me-3">
+                        
+                    <img src="{{ asset('images/' . $tutor->imagen) }}" alt="Imagen de usuario" style="width: 40px; height: 40px;">
+                </div>
 
-SDFSDFSDF
+                    <div class="flex-grow-1">
+                        <h4 class="mb-0">
+                            {{ $tutor->nombres ?? (auth()->user()->nombres ?? 'Tutor') }}
+                            {{ $tutor->apellidos ?? (auth()->user()->apellidos ?? '') }}
+                        </h4>
+                        <small class="text d-block mb-2">Rol: Tutor</small>
 
-    <div class="row">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="small text">Hijos asignados</div>
+                                <div class="h5 mb-0">{{ $hijos ?? ($tutor->estudiantes->count() ?? 0) }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text">Último inicio de sesión</div>
+                                <div class="h6 mb-0">
+                                    {{ isset($ultimoLogin) ? \Carbon\Carbon::parse($ultimoLogin)->format('d/m/Y H:i') 
+                                    : (isset($tutor->last_login_at) ? \Carbon\Carbon::parse($tutor->last_login_at)->format('d/m/Y H:i') : '—') }}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div> <!-- /.card-body -->
+            </div> <!-- /.card -->
+            </div>
+
+            
+
+        </div>
+
+<!--<div class="card">
+    <div class="card-header bg-info text-white">
+        <h4>Rendimiento Académico Comparativo (Hijos del Tutor)</h4>
+    </div>
+    <div class="card-body">
+        <canvas id="graficaRendimiento" height="120"></canvas>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const ctx = document.getElementById('graficaRendimiento').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($trimestres) !!},
+            datasets: [
+                @foreach ($series as $serie)
+                {
+                    label: "{{ $serie['label'] }}",
+                    data: {!! json_encode($serie['data']) !!},
+                    fill: false,
+                    tension: 0.3,
+                    borderWidth: 3,
+                },
+                @endforeach
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+});
+</script>-->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<div class="row">
 @foreach ($estudiantesDatos as $datos)
 
         <!-- Gráfico de Rendimiento Académico y Asistencia para el Estudiante -->
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title">Rendimiento de {{ $datos['nom']}} {{ $datos['apellidos_es']}} </h3>
+                <div class="card-header ">
+                    <h3 class="card-title">Asistencias de {{ $datos['nom']}} {{ $datos['apellidos_es']}} </h3>
                 </div>
                 <div class="card-body">
-                    <!-- Gráfico de Notas -->
-                    <h4>Promedio de Notas:</h4>
-                    <div class="chart">
-                        <canvas id="chartNotas{{ $datos['estudiante']->id }}"></canvas>
-                    </div>
-                    <!-- Gráfico de Asistencia -->
-                    <h4 class="mt-4">Asistencia:</h4>
-                    <div class="chart">
+                    <div class="chart chart-small">
                         <canvas id="chartAsistencia{{ $datos['estudiante']->id }}"></canvas>
                     </div>
                 </div>
             </div>
         </div>
+<style>
+    .chart-small canvas {
+    max-width: 400px !important;
+    max-height: 400px !important;
+    margin: auto;
+}
 
+</style>
 
     <script>
-        // Gráfico de notas para el estudiante
-        var ctxNotas{{ $datos['estudiante']->id }} = document.getElementById('chartNotas{{ $datos['estudiante']->id }}').getContext('2d');
-        var chartNotas{{ $datos['estudiante']->id }} = new Chart(ctxNotas{{ $datos['estudiante']->id }}, {
-            type: 'bar',
-            data: {
-                labels: [
-                    @foreach ($datos['promedios'] as $promedio)
-                        '{{ $promedio->asignatura }}', // Nombre de la asignatura
-                    @endforeach
+    var ctxAsistencia{{ $datos['estudiante']->id }} = document
+        .getElementById('chartAsistencia{{ $datos['estudiante']->id }}')
+        .getContext('2d');
+
+    new Chart(ctxAsistencia{{ $datos['estudiante']->id }}, {
+        type: 'pie',
+        plugins: [ChartDataLabels], // ← necesario para mostrar valores
+        data: {
+            labels: ['Presente', 'Justificado', 'Ausente'],
+            datasets: [{
+                label: 'Asistencia',
+                data: [
+                    {{ $datos['asistencia']['presente'] }},
+                    {{ $datos['asistencia']['justificado'] }},
+                    {{ $datos['asistencia']['ausente'] }}
                 ],
-                datasets: [{
-                    label: 'Promedio de Notas',
-                    data: [
-                        @foreach ($datos['promedios'] as $promedio)
-                            {{ $promedio->promedio }},
-                        @endforeach
-                    ], // Promedio por materia
-                    backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#17a2b8'], // Colores por materia
-                    borderColor: ['#28a745', '#ffc107', '#dc3545', '#17a2b8'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 10
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+                borderColor: ['#28a745', '#ffc107', '#dc3545'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                // Mostrar números dentro de la torta
+                datalabels: {
+                    color: '#fff',
+                    font: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    formatter: function(value, ctx) {
+                        if (value > 0){
+                        let label = ctx.chart.data.labels[ctx.dataIndex];
+                        return value + " " + label.toLowerCase();
+                        } return "";
+                    }
+                },
+
+                // Leyenda con circulitos
+                legend: {
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 20
                     }
                 }
             }
-        });
-
-        // Gráfico de asistencia para el estudiante
-        var ctxAsistencia{{ $datos['estudiante']->id }} = document.getElementById('chartAsistencia{{ $datos['estudiante']->id }}').getContext('2d');
-        var chartAsistencia{{ $datos['estudiante']->id }} = new Chart(ctxAsistencia{{ $datos['estudiante']->id }}, {
-            type: 'pie',
-            data: {
-                labels: ['Presente', 'Justificado', 'Ausente'],
-                datasets: [{
-                    label: 'Asistencia',
-                    data: [
-                        {{ $datos['asistencia']['presente'] }},
-                        {{ $datos['asistencia']['justificado'] }},
-                        {{ $datos['asistencia']['ausente'] }}
-                    ], // Datos de asistencia por estado
-                    backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
-                    borderColor: ['#28a745', '#ffc107', '#dc3545'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true
-            }
-        });
-    </script>
+        }
+    });
+</script>
 @endforeach
 </div>
 
 <?php } ?>
 
 <?php if (auth()->user()->hasRole('SECRETARIA')): ?>
-     @if(auth()->user()->email_verified_at)
-        <span class="badge badge-success">✔ Verificado</span>
+<!---BOTON ADICIONAR Y LOGIN QR-->
+
+                    <!-- Botón de cerrar sesión -->
+        @if(auth()->user()->email_verified_at)
+        <span class="badge badge-success">Email Verificado</span>
     @else
         <span class="badge badge-warning">Pendiente</span>
-
+<br>
         <!-- Botón para reenviar el correo de verificación -->
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
             <button type="submit" class="btn btn-primary">Reenviar correo de verificación</button>
         </form>
+        <br>
     @endif
+
+        <div class="container-fluid mt-3 d-block d-md-none">
+    <div class="row justify-content-center">
+        <div class="col-11">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-2 text-primary">
+                        <a href="#" class="text-decoration-none">
+                        INICIAR SESION CON CODIGO QR
+                        </a>
+                    </h5>
+                <!--   <p class="card-text text-muted mb-3">
+                        Escanear el código QR para iniciar sesión.
+                    </p>*/-->
+                    <a href="/auth/scan" class="btn btn-primary w-100">
+                        Escanear QR
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-info">
+
+                    <div class="inner">
+                        <h3>{{$tutores}}</h3>
+                        <p>Total de Tutores</p>
+                    </div>
+                    <div class="icon">
+                    <i class="fas fa-user-tie"></i>
+
+                    </div>
+
+                    <a href="{{ route('admin.tutores.index') }}" class="small-box-footer"> mas information
+                        <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-warning">
+
+                    <div class="inner">
+                        <h3>{{$estudiantes}}</h3>
+                        <p>Total de Estudiantes</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+
+                    <a href="{{ route('admin.estudiantes.index') }}" class="small-box-footer"> mas information
+                        <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <section class="col-lg-6 connectedSoportable ui-sortable">
+
+                <div class="row">
+
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header ui-sortable-handle" style="cursor: move;">
+                                <h3 class="card-title"> <i class="fas fa-chart-pie mr-1">
+                                    </i> Datos</h3>
+                                <div class="card-tools">
+                                    <ul class="nav nav-pills ml-auto">
+                                        <li class="nav-item"><a href="#" class="nav-link">Torta</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="tab-content p-0">
+                                    <div class="chart tab-pane active" id="revenue-chart" style="position: relative; height: 280px;">
+                                        <div class="chartjs-size-monitor">
+
+
+                                            <div id="container-genero_estudiantes" style="width:100%; height:300px;"></div>
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                    Highcharts.chart('container-genero_estudiantes', {
+                                                        chart: {
+                                                            type: 'pie'
+                                                        },
+                                                        title: {
+                                                            text: 'Estudiantes Registrados por Género'
+                                                        },
+                                                        tooltip: {
+                                                            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                                                        },
+                                                        plotOptions: {
+                                                            pie: {
+                                                                allowPointSelect: true,
+                                                                cursor: 'pointer',
+                                                                dataLabels: {
+                                                                    enabled: true,
+                                                                    format: '<b>{point.name}</b>: {point.y} estudiantes'
+                                                                }
+                                                            }
+                                                        },
+                                                        series: [{
+                                                            name: 'Porcentaje',
+                                                            colorByPoint: true,
+                                                            data: @json($dataGenero)
+                                                        }]
+                                                    });
+                                                });
+                                            </script>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- asistencia mensual de estudiantes-->
+            <section class="col-lg-6 connectedSoportable ui-sortable">
+
+                <div class="row">
+
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header ui-sortable-handle" style="cursor: move;">
+                                <h3 class="card-title"> <i class="fas fa-chart-pie mr-1">
+                                    </i> Datos</h3>
+                                <div class="card-tools">
+                                    <ul class="nav nav-pills ml-auto">
+                                        <li class="nav-item"><a href="#" class="nav-link">Torta</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="tab-content p-0">
+                                    <div class="chart tab-pane active" id="revenue-chart" style="position: relative; height: 280px;">
+                                        <div class="chartjs-size-monitor">
+
+
+                                            <div id="container-genero_tutores" style="width:100%; height:300px;"></div>
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                    Highcharts.chart('container-genero_tutores', {
+                                                        chart: {
+                                                            type: 'pie'
+                                                        },
+                                                        title: {
+                                                            text: 'Tutores Registrados por Género'
+                                                        },
+                                                        tooltip: {
+                                                            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                                                        },
+                                                        plotOptions: {
+                                                            pie: {
+                                                                allowPointSelect: true,
+                                                                cursor: 'pointer',
+                                                                dataLabels: {
+                                                                    enabled: true,
+                                                                    format: '<b>{point.name}</b>: {point.y} tutores'
+                                                                }
+                                                            }
+                                                        },
+                                                        series: [{
+                                                            name: 'Porcentaje',
+                                                            colorByPoint: true,
+                                                            data: @json($tutorgenero)
+                                                        }]
+                                                    });
+                                                });
+                                            </script>
+                                        </div>
+                                        
+                                    </div>
+                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header ui-sortable-handle" style="cursor: move;">
+                                <h3 class="card-title"> <i class="fas fa-chart-pie mr-1">
+                                    </i> Datos</h3>
+                                <div class="card-tools">
+                                    <ul class="nav nav-pills ml-auto">
+
+                                        <li class="nav-item"><a href="#" class="nav-link">Torta</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="tab-content p-0">
+                                    <div class="chart tab-pane active" id="revenue-chart" style="position: relative; height: 280px;">
+                                        <div class="chartjs-size-monitor">
+                                            <div id="container" style="width:100%; height:300px;"></div>
+
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                    Highcharts.chart('container', {
+                                                        chart: {
+                                                            type: 'pie'
+                                                        },
+                                                        title: {
+                                                            text: 'Estudiantes Registrados por Curso'
+                                                        },
+                                                        tooltip: {
+                                                            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                                                        },
+                                                        plotOptions: {
+                                                            pie: {
+                                                                allowPointSelect: true,
+                                                                cursor: 'pointer',
+                                                                dataLabels: {
+                                                                    enabled: true,
+                                                                    format: '<b>{point.name}</b>: {point.y} estudiantes'
+                                                                }
+                                                            }
+                                                        },
+                                                        series: [{
+                                                            name: 'Porcentaje',
+                                                            colorByPoint: true,
+                                                            data: @json($data)
+                                                        }]
+                                                    });
+                                                });
+                                            </script>
+                                        </div>
+                                        <canvas id="revenue-chart-canvas" height="200" style="height:200; display:block; width:300px;" width="200" class="chartjs-render-monitor"></canvas>
+                                    </div>
+                                    <div class="chart tab-pane" id="sales-chart" style="position:relative; height: 300px;">
+                                        <canvas id="sales-chart-canvas" height="0" style="height: 0; display:block; width: 0;" class="chartjs-rebder-monitor" width="0"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </div>
+    
 <?php endif; ?>
 
 

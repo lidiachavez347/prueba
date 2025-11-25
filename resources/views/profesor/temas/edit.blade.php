@@ -16,6 +16,7 @@
     </center>
 </div>
 {!! Form::close() !!}
+
 @section('js')
 
 <script>

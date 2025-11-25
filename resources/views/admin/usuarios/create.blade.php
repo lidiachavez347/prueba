@@ -13,14 +13,14 @@
             </div>
             {!! Form::open(['route' => 'admin.usuarios.store', 'enctype' => 'multipart/form-data']) !!}
             <div class="card-body">
- @csrf
+                @csrf
 
                 <div class="row">
-<div class="col-md-4">
+                    <div class="col-md-4">
                         <div class="form-group">
                             {!! Form::label('roles', 'Rol:') !!}
                             {!! Form::select('roles', $roles, null, ['class' => 'form-control']) !!}
-                             @error('roles') <span class="text-danger">{{ $message }}</span> @enderror
+                            @error('roles') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -110,6 +110,7 @@
                         <div class="form group">
                             {!! Form::label('password', 'Contraseña: ') !!}
                             {!! Form::password('password', ['id' => 'password-hidden', 'class' => 'form-control', 'placeholder' => 'Contraseña','readonly' => 'readonly']) !!}
+                        
                             @error('password')
                             <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -125,18 +126,10 @@
                         <div class="form-group">
 
                                 <label class="control-label" for="telefono">Teléfono</label>
-    <input 
-        class="form-control" 
-        type="tel" 
-        name="telefono" 
-        placeholder="Número de teléfono"
-        pattern="[0-9]{8,15}" 
-        title="Ingrese solo números (8 a 15 dígitos)" 
-        required
-    >
-    @error('telefono') 
-        <span class="text-danger">{{ $message }}</span> 
-    @enderror
+                                <input  class="form-control" type="tel" name="telefono" placeholder="Número de teléfono" pattern="[0-9]{8,15}" title="Ingrese solo números (8 a 15 dígitos)" required>
+                                @error('telefono') 
+                                    <span class="text-danger">{{ $message }}</span> 
+                                @enderror
                         </div>
                     </div>
                 </div>

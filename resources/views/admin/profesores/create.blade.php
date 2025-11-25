@@ -94,7 +94,7 @@
                             @error('telefono') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
-                   
+                
                 </div>
 
 
@@ -111,7 +111,7 @@
                     <div class="col-md-6">
                         <div class="form group">
                             {!! Form::label('password', 'Contraseña: ') !!}
-                            {!! Form::password('password', ['class' => 'form-control', 'placeholder' => 'Password']) !!}
+                            {!! Form::password('password', ['id' => 'password-hidden', 'class' => 'form-control', 'placeholder' => 'Contraseña','readonly' => 'readonly']) !!}
                             @error('password')
                             <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -134,6 +134,7 @@
                         <div class="form-group">
                             {!! Form::label('imagen', 'Subir Imagen') !!}
                             {!! Form::file('imagen', ['class' => 'form-control']) !!}
+                                @error('imagen') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                         <button type="button" id="eliminar-imagen" class="btn btn-danger btn-sm d-none">Eliminar</button>
                     </div>
@@ -189,6 +190,86 @@
     integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
 @stop
 @section('js')
+
+<script>
+document.querySelector('input[name="telefono"]').addEventListener('input', function(e) {
+    this.value = this.value.replace(/\D/g, ''); // elimina todo lo que no sea número
+});
+
+
+
+    function generarPassword(longitud = 8) {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let pass = "";
+    for (let i = 0; i < longitud; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+}
+
+$(document).ready(function() {
+    const emailInput = $('input[name="email"]');
+    const feedback = $('<small id="email-feedback"></small>');
+    emailInput.after(feedback);
+
+    let typingTimer;
+    const delay = 1000; // milisegundos después de dejar de escribir
+
+    emailInput.on('keyup', function() {
+        clearTimeout(typingTimer);
+        const email = $(this).val();
+
+        if (email.length > 5) {
+            feedback.text('Verificando correo... 🔄').css('color', 'gray');
+            typingTimer = setTimeout(() => {
+                verificarEmail(email);
+                // Generar contraseña automática y asignar al campo oculto
+                const nuevaPass = generarPassword(8);
+                $('#password-hidden').val(nuevaPass);
+                console.log('Contraseña generada:', nuevaPass);
+            
+            } , delay);
+        } else {
+            feedback.text('');
+            $('#password-hidden').val('');
+        }
+    });
+
+    function verificarEmail(email) {
+        $.ajax({
+            url: '{{ route('verificar.email') }}',
+            type: 'POST',
+            data: {
+                email: email,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.valid) {
+                    feedback.text(response.message).css('color', 'green');
+                } else {
+                    feedback.text(response.message).css('color', 'red');
+                    $('#password-hidden').val('');
+                }
+            },
+            error: function() {
+                feedback.text('⚠️ Error al verificar el correo.').css('color', 'orange');
+            }
+        });
+    }
+});
+$('form').on('submit', function(e) {
+    const mensaje = $('#email-feedback').text();
+    if (mensaje.includes('no existe') || mensaje.includes('Error')) {
+        e.preventDefault();
+        alert('Por favor, ingrese un correo válido antes de guardar.');
+    }
+});
+
+</script>
+
+
+
+
 <script>
     $(document).ready(function(e) {
         // Cuando se elige una imagen

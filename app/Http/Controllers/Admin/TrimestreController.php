@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Gestion;
 use App\Models\Trimestre;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TrimestreController extends Controller
 {
@@ -43,7 +44,15 @@ class TrimestreController extends Controller
     {
         if (Auth::user()) {
             $request->validate([
-                'periodo' => 'required|unique:trimestres,periodo',
+                'periodo' =>
+                [
+                    'required',
+                    'string',
+                    Rule::unique('trimestres')->where(function ($query) use ($request) {
+                        return $query->where('periodo', $request->periodo)
+                            ->where('id_gestion', $request->id_gestion);
+                    }),
+                ],
                 'estado' => 'required',
                 'fecha_inicio' => 'required|date',
                 'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
@@ -59,12 +68,15 @@ class TrimestreController extends Controller
                 'id_gestion.exists' => 'La gestión seleccionada no existe.',
             ]);
 
+
+
             $trimestre = new Trimestre();
             $trimestre->periodo = strtoupper($request->periodo); // convierte a MAYÚSCULAS
             $trimestre->estado = $request->estado;
             $trimestre->fecha_inicio = $request->fecha_inicio;
             $trimestre->fecha_fin = $request->fecha_fin;
             $trimestre->id_gestion = $request->id_gestion;
+            //$trimestre->numero = 1;
             $trimestre->save();
 
             return redirect()->route('admin.trimestres.index')->with('guardar', 'ok');
@@ -93,7 +105,8 @@ class TrimestreController extends Controller
     {
         if (Auth::user()) {
             $trimestre = Trimestre::findOrFail($id);
-            return view('admin.trimestres.edit', compact('trimestre'));
+            $gestiones = Gestion::where('estado', 1)->pluck('gestion', 'id');
+            return view('admin.trimestres.edit', compact('trimestre', 'gestiones'));
         } else {
             Auth::logout();
             return redirect()->back();
@@ -104,29 +117,39 @@ class TrimestreController extends Controller
     {
         if (Auth::user()) {
             $request->validate([
-              'periodo' => 'required|unique:trimestres,periodo,' . $id,
-                'estado' => 'required',
-                'fecha_inicio' => 'required|date',
-                'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
-
+                'periodo' => [
+                    'required',
+                    'string',
+                    Rule::unique('trimestres')
+                        ->where(function ($query) use ($request) {
+                            return $query->where('id_gestion', $request->id_gestion);
+                        })
+                        ->ignore($id),
+                ],
+                'estado' => ['required'],
+                'fecha_inicio' => ['required', 'date'],
+                'fecha_fin' => ['required', 'date', 'after_or_equal:fecha_inicio'],
+                'id_gestion' => ['required', 'exists:gestiones,id'], // Validar que exista la gestión
             ], [
                 'periodo.required' => 'El campo periodo es obligatorio.',
-                'periodo.unique' => 'Ya existe un trimestre con este periodo.',
+                'periodo.unique' => 'Ya existe este periodo en la misma gestion.',
                 'estado.required' => 'El campo estado es obligatorio.',
                 'fecha_inicio.required' => 'Debe ingresar una fecha de inicio.',
                 'fecha_fin.required' => 'Debe ingresar una fecha de fin.',
                 'fecha_fin.after_or_equal' => 'La fecha fin debe ser igual o posterior a la fecha inicio.',
-
             ]);
+
 
             $trimestre = Trimestre::findOrFail($id);
             $trimestre->periodo = strtoupper($request->periodo);
             $trimestre->estado = $request->estado;
             $trimestre->fecha_inicio = $request->fecha_inicio;
             $trimestre->fecha_fin = $request->fecha_fin;
-            $trimestre->save(); // 👈 Usa save() en lugar de update()
+            $trimestre->id_gestion = $request->id_gestion;
+            $trimestre->update();
 
-               return redirect()->route('admin.curricular.index')->with('success', 'Trimestre actualizado con éxito');
+          //  return redirect()->route('admin.curricular.index')->with('success', 'Trimestre actualizado con éxito');
+            return response()->json(['success' => true, 'message' => 'Trimestre actualizado correctamente']);
         } else {
             Auth::logout();
             return redirect()->back();

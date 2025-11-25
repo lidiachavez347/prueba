@@ -14,4 +14,12 @@ class Gestion extends Model
         'gestion',
         'estado',
     ];
+    public function trimestres()
+    {
+        return $this->hasMany(Trimestre::class, 'id_gestion', 'id');
+    }
+        public function cursos()
+    {
+        return $this->hasMany(Curso::class, 'id_gestion', 'id');
+    }
 }

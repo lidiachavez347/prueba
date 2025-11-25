@@ -44,11 +44,16 @@ class MateriaController extends Controller
             $request->validate([
                 'nombre_asig' => 'required|unique:asignaturas,nombre_asig', // Validar en la tabla gestiones y la columna 'gestion'
                 'estado_asig' => 'required',
-            ]);
+            ], [
+                'nombre_asig.required' => 'El campo nombre es obligatorio.',
+                'nombre_asig.unique' => 'Ya existe una materia con este nombre.',
+                'estado_asig.required' => 'El campo estado es obligatorio.',
+            ]
+        );
     
             // Crear una nueva gestión
             $materia = new Asignatura();
-            $materia->nombre_asig = $request->nombre_asig;
+            $materia->nombre_asig = strtoupper($request->nombre_asig);
             $materia->estado_asig = $request->estado_asig;
             $materia->id_area = $request->id_area;
             // Guardar la gestión
@@ -67,12 +72,23 @@ class MateriaController extends Controller
     {
         $materia = Asignatura::findOrFail($id);
         $areas = Area::pluck('area','id');
+
         return view('admin.materias.edit', compact('materia','areas'));
     }
     public function update(Request $request, $id)
     {
+        $request->validate([
+        'nombre_asig' => 'required|string',
+        'estado_asig' => 'required',
+       // 'id_area' => 'required|exists:areas,id', // Suponiendo que 'areas' es la tabla de áreas
+    ], [
+        'nombre_asig.required' => 'El nombre de la asignatura es obligatorio.',
+        'nombre_asig.string' => 'El nombre de la asignatura debe ser texto.',
+        'estado_asig.required' => 'Debe seleccionar el estado de la asignatura.',
+
+    ]);
         $materia = Asignatura::findOrFail($id);
-        $materia->nombre_asig = $request->nombre_asig;
+        $materia->nombre_asig = strtoupper($request->nombre_asig);
         $materia->estado_asig = $request->estado_asig;
         $materia->id_area = $request->id_area;
         $materia->update();

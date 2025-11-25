@@ -75,26 +75,25 @@
                 <th>NOMBRE</th>
                 <th>AREA</th>
                 <th>ESTADO</th>
+                <th>FECHA DE REGISTRO</th>
                 <TH>ACCIONES</TH>
             </tr>
         </thead>
         <tbody>
             @foreach ($materias as $materia)
             <tr id="permiso-{{ $materia->id }}">
-                <td>{{ $materia->id }}</td>
+                <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
                 <td>{{ $materia->nombre_asig }}</td>
                 <td>{{ $materia->area->area }}</td>
 
 
                 <td width="70px" style="text-align: right">
-                    @if ($materia->estado_asig == 1)
-                    <span class="badge badge-success">ACTIVO</span>
-                    @elseif ($materia->estado_asig == 0)
-                    <span class="badge badge-danger">NO ACTIVO</span>
-                    @else
-                    <span class="badge badge-warning">NO PERMITIDO</span>
-                    @endif
+                    
+                    <span class="badge badge-pill badge-{{ $materia->estado_asig ? 'success' : 'danger' }}">
+                        {{ $materia->estado_asig ? 'ACTIVO' : 'NO ACTIVO' }}
+                    </span>
                 </td>
+                <td>{{ $materia->created_at }}</td>
                 <td>
 
                     <!-- Botón para ver detalles del permiso -->
@@ -315,9 +314,31 @@
                 $('#usuario-' + response.id).replaceWith(response.html);
             },
             error: function(xhr) {
-                console.error(xhr.responseText);
-                Swal.fire('Error', 'No se pudo actualizar el nivel', 'error');
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar la materia.'
+                });
             }
+        }
         });
     });
 </script>

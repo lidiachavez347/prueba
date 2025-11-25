@@ -58,6 +58,24 @@
 </div>
 @stop
 @section('content')
+@if(Auth::check() && session('qr_token'))
+<script>
+    let token = "{{ session('qr_token') }}";
+
+    // Polling cada 3 segundos para verificar si la sesión QR fue eliminada
+    setInterval(() => {
+        fetch(`/api/qr/status/${token}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.logout) {
+                    console.log("Sesión eliminada desde celular. Cerrando laptop...");
+                    window.location.href = '/logout'; // cerrar sesión
+                }
+            })
+            .catch(err => console.error("Error verificando QR token:", err));
+    }, 3000);
+</script>
+@endif
 
 
 <div class="modal-footer">
@@ -83,7 +101,7 @@
         <tbody>
             @foreach ($roles as $role)
             <tr id="permiso-{{ $role->id }}">
-                <td >{{ $role->id }}</td>
+                <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
                 <td>{{ $role->name }}</td>
 
                 <td width="70px" style="text-align: right">
@@ -321,9 +339,31 @@
                 $('#usuario-' + response.id).replaceWith(response.html);
             },
             error: function(xhr) {
-                console.error(xhr.responseText);
-                Swal.fire('Error', 'No se pudo actualizar el rol', 'error');
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar el rol.'
+                });
             }
+        }
         });
     });
 </script>

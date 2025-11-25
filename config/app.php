@@ -17,7 +17,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Academico'),
-
+'timezone' => 'America/La_Paz',
     /*
     |--------------------------------------------------------------------------
     | Application Environment

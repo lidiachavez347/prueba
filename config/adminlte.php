@@ -30,8 +30,11 @@ return [
     |
     */
 
-    'use_ico_only' => false,
-    'use_full_favicon' => false,
+    'favicon' => [
+        'use_ico_only' => true,
+        'use_full_favicon' => false,
+        'path' => 'favicon.ico',
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -63,13 +66,13 @@ return [
     |
     */
 
-    'logo' => '',
-    'logo_img' => 'images/hombre.png',
+    'logo' => '<b>U.E. Cnl.</b> Miguel Estenssoro T.T. ',
+    'logo_img' => 'images/logo.jpg',
     'logo_img_class' => 'brand-image img-circle elevation-3',
 
     'logo_img_xl' => null,
     'logo_img_xl_class' => null,
-    'logo_img_alt' => '',
+    'logo_img_alt' => 'Logo del sistema',
 
     'logo_img_login' => 'images/logo.jpg', // Ruta de la imagen del logo para la página de login
     'logo_img_login_class' => 'brand-image img-circle elevation-3',
@@ -416,7 +419,7 @@ return [
             'icon' => 'fas fa-home',
             'topnav_right' => true,
         ],
-        
+
         /*[
             'type' => 'dropdown',
             'text' => 'Mensajes',
@@ -464,34 +467,32 @@ return [
             'icon' => 'fas fa-tachometer-alt',
         ],
         [
-            'header' => 'Administrador',
+            'header' => 'Administracion',
             'can'  => 'admin.permisos.index',
         ],
         [
             'text' => 'Administracion',
             'icon' => 'fas fa-users',
-            'submenu' => [
-                
-            ],
+            'submenu' => [],
         ],
         [
-                    'text' => ' Permisos',
-                    'url' => 'admin/permisos',
-                    'icon' => 'fa fa-lock',
-                    'can'  => 'admin.permisos.index',
-                ],
-                [
-                    'text' => 'Roles',
-                    'url' => 'admin/roles',
-                    'icon' => 'fa fa-cogs',
-                    'can'  => 'admin.roles.index',
-                ],
-                [
-                    'text' => 'Usuarios',
-                    'url' => 'admin/usuarios',
-                    'icon' => 'fa fa-users',
-                    'can'  => 'admin.usuarios.index',
-                ],
+            'text' => ' Permisos',
+            'url' => 'admin/permisos',
+            'icon' => 'fa fa-lock',
+            'can'  => 'admin.permisos.index',
+        ],
+        [
+            'text' => 'Roles',
+            'url' => 'admin/roles',
+            'icon' => 'fa fa-cogs',
+            'can'  => 'admin.roles.index',
+        ],
+        [
+            'text' => 'Usuarios',
+            'url' => 'admin/usuarios',
+            'icon' => 'fa fa-users',
+            'can'  => 'admin.usuarios.index',
+        ],
         [
             'header' => 'Academico',
             'can'  => 'admin.permisos.index',
@@ -543,12 +544,12 @@ return [
             'can'  => 'admin.asignaturas.index',
         ],
         [
-            'text' => 'Calendario académico',
+            'text' => 'Calendario',
             'url' => 'admin/calendario',
             'icon' => 'fas fa-calendar-alt',
             'can'  => 'admin.calendario.index',
         ],
-
+//calendario.index   EN PERMISOS
 
 
         // [
@@ -609,7 +610,7 @@ return [
             'can'  => 'profesor.contenidos.index',
         ],
         [
-            'text' => 'Contenido',
+            'text' => 'Plan de clase',
             'url' => 'profesor/contenidos',
             'icon' => 'fas fa-book', // Icono de campana para alertas
             'can'  => 'profesor.contenidos.index',
@@ -658,6 +659,44 @@ return [
             'can'  => 'profesor.estudiantes.index',
         ],
         [
+            'header' => 'Centro de notas',
+            'can'  => 'profesor.contenidos.index',
+        ],[
+            'text' => 'Ser',
+            'url' => 'profesor/ser',
+            'icon' => 'fas fa-brain',  // Icono de grupo para estudiantes
+            'can'  => 'profesor.ser.index',
+        ],
+        
+        [
+            'text' => 'Saber',
+            'url' => 'profesor/saber',
+            'icon' => 'fas fa-book',  // Icono de grupo para estudiantes
+            'can'  => 'profesor.ser.index',
+        ],
+        [
+            'text' => 'Hacer',
+            'url' => 'profesor/hacer',
+            'icon' => 'fas fa-tools',  // Icono de grupo para estudiantes
+            'can'  => 'profesor.ser.index',
+        ],
+        [
+            'text' => 'Decidir',
+            'url' => 'profesor/decidir',
+            'icon' => 'fas fa-balance-scale',  // Icono de grupo para estudiantes
+            'can'  => 'profesor.ser.index',
+        ],
+    [
+            'text' => 'Centralizador',
+            'url' => 'profesor/centralizador',
+            'icon' => 'fas fa-layer-group',  // Icono de grupo para estudiantes
+            'can'  => 'profesor.centralizador.index',
+        ],
+
+
+
+
+        [
             'text' => 'Alertas',
             'url' => 'profesor/alertas',
             'icon' => 'fas fa-bell', // Icono de campana para alertas
@@ -670,9 +709,16 @@ return [
             'can'  => 'profesor.calendario.index',
         ],
         [
-            'header' => 'Estudiante',
-            'can'  => 'estudiante.contenidos.index',
+            'header' => 'Tutor',
+            'can'  => 'tutores.notas.index',
         ],
+                [
+            'text' => 'Notas',
+            'url' => 'tutores/notas',
+            'icon' => 'fas fa-edit', // Icono de lápiz para evaluaciones
+            'can'  => 'tutores.notas.index',
+        ],
+
         [
             'text' => 'Contenido',
             'url' => 'estudiante/contenidos',

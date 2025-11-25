@@ -14,8 +14,16 @@ return new class extends Migration
         Schema::create('qr_logins', function (Blueprint $table) {
             $table->id();
             $table->string('token')->unique();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+
+            $table->unsignedBigInteger('user_id')->nullable(true);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            $table->string('ip_address')->nullable();   // 👈 AQUÍ
+            $table->string('user_agent')->nullable();    // 👈 AQUÍ
+            
             $table->boolean('confirmed')->default(false);
+            $table->timestamp('expires_at')->nullable();
+
             $table->timestamps();
         });
     }

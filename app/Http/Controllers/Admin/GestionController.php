@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Gestion;
+use App\Models\Trimestre;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -56,9 +57,36 @@ class GestionController extends Controller
             $gestion = new Gestion();
             $gestion->gestion = $request->gestion;
             $gestion->estado = $request->estado;
-
-            // Guardar la gestión
             $gestion->save();
+            // Crear los 3 trimestres automáticamente
+$hoy = date('Y-m-d'); // fecha actual
+
+for ($i = 1; $i <= 3; $i++) {
+
+    // Nombres de trimestres
+    $nombres = [
+        1 => 'PRIMER TRIMESTRE',
+        2 => 'SEGUNDO TRIMESTRE',
+        3 => 'TERCER TRIMESTRE'
+    ];
+
+    // Obtener la gestión (año)
+    //$gestionObj = Gestion::find($request->id_gestion);
+   // $gestion = $gestionObj->gestion;
+
+    $trimestre = new Trimestre();
+    $trimestre->periodo = $nombres[$i] . ' ' . $gestion->gestion;
+    $trimestre->estado = 1;
+
+    // Fechas automáticas con HOY
+    $trimestre->fecha_inicio = $hoy;
+    $trimestre->fecha_fin = $hoy;
+
+    $trimestre->id_gestion = $gestion->id;
+    $trimestre->numero = $i;
+    $trimestre->save();
+}
+
 
             // Redirigir a la vista con un mensaje de éxito
             return redirect()->route('admin.gestion.index')->with('guardar', 'ok');
@@ -99,7 +127,7 @@ class GestionController extends Controller
        // Validar los campos
     $request->validate(
         [
-            'gestion' => 'required|unique:gestions,gestion,' . $id,
+            'gestion' => 'required|unique:gestiones,gestion,' . $id,
             'estado' => 'required',
         ],
         [
@@ -108,6 +136,7 @@ class GestionController extends Controller
             'estado.required' => 'El campo estado es obligatorio.',
         ]
     );
+    
         $gestion = Gestion::findOrFail($id);
         $gestion->gestion = $request->gestion;
         $gestion->estado = $request->estado;

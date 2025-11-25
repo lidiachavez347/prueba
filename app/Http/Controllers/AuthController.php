@@ -11,7 +11,7 @@ class AuthController extends Controller
 // AuthController.php
 
 
-public function loginWithQr($token)
+public function loginWithQrCelular($token)
 {
     $user = User::where('qr_token', $token)->first();
 

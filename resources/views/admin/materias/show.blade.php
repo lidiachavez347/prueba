@@ -6,11 +6,9 @@
             <b>Area:</b> {{ $materia->area->area}} <br>
         
             <strong>Estado:</strong>
-            @if ($materia->estado_asig == 1)
-            Activo
-            @else
-            No Activo
-            @endif
+            <span class="badge badge-pill badge-{{ $materia->estado_asig ? 'success' : 'danger' }}">
+                        {{ $materia->estado_asig ? 'ACTIVO' : 'NO ACTIVO' }}
+                    </span>
 
         </div>
     </div>

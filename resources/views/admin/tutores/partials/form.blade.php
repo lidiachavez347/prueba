@@ -3,7 +3,8 @@
         <div class="col-md-6">
             <div class="form-group">
                 {!! Form::label('roles', 'Rol:') !!}
-                {!! Form::select('roles', $roles, null, ['class' => 'form-control']) !!}
+                {!! Form::select('roles', $roles, $users->id_rol, ['class' => 'form-control']) !!}
+                    @error('roles') <span class="text-danger">{{ $message }}</span> @enderror
             </div>
         </div>
         <div class="col-md-6">
@@ -86,7 +87,8 @@
         <div class="col-md-6">
             <div class="form group">
                 {!! Form::label('password', 'Contraseña: ') !!}
-                {!! Form::password('password', ['class' => 'form-control', 'placeholder' => 'Password']) !!}
+                {!! Form::password('password', ['class' => 'form-control', 'placeholder' => 'Password', 'id' => 'password-input']) !!}
+                        <small id="password-strength" class="form-text"></small>
                 @error('password')
                 <span class="text-danger">{{ $message }}</span>
                 @enderror
@@ -136,6 +138,7 @@
             <div class="form-group">
                 {!! Form::label('imagen', 'Subir Imagen') !!}
                 {!! Form::file('imagen', ['class' => 'form-control']) !!}
+                    @error('imagen') <span class="text-danger">{{ $message }}</span> @enderror
             </div>
         </div>
         <div class="col-md-6">
@@ -153,3 +156,140 @@
     </div>
 </div>
 <br>
+
+
+<script>
+    $(document).ready(function(e) {
+        $('#imagen').change(function() {
+            let reader = new FileReader();
+            reader.onload = (e) => {
+                $('#imagenseleccionada').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(this.files[0]);
+
+        });
+    });
+</script>
+<script>
+$(document).ready(function() {
+    const emailInput = $('input[name="email"]'); // Definir emailInput correctamente
+    const emailOriginal = emailInput.val();
+
+    // Crear elemento para feedback de email si no existe
+    let feedbackEmail = $('#email-feedback');
+    if (feedbackEmail.length === 0) {
+        feedbackEmail = $('<small id="email-feedback" class="form-text"></small>');
+        emailInput.after(feedbackEmail);
+    }
+
+    const passwordInput = $('#password-input');
+    const feedbackPassword = $('#password-strength');
+
+    let typingTimerEmail;
+    let typingTimerPass;
+    const delay = 1000; // ms
+
+    // Función para evaluar fuerza de contraseña
+    function evaluarFuerza(password) {
+        let fuerza = 0;
+        if (password.length >= 8) fuerza++;
+        if (/[A-Z]/.test(password)) fuerza++;
+        if (/[a-z]/.test(password)) fuerza++;
+        if (/[0-9]/.test(password)) fuerza++;
+        if (/[\W_]/.test(password)) fuerza++; // caracteres especiales
+
+        if (fuerza <= 2) return {msg: 'Contraseña muy débil, debe tener al menos 8 caracteres', color: 'red'};
+        if (fuerza === 3 || fuerza === 4) return {msg: 'Contraseña aceptable, debe tener al menos 8 caracteres', color: 'orange'};
+        if (fuerza === 5) return {msg: 'Contraseña fuerte', color: 'green'};
+    }
+
+    // Validación contraseña en tiempo real
+    passwordInput.on('keyup', function() {
+        clearTimeout(typingTimerPass);
+        const pass = $(this).val();
+
+        if (pass.length === 0) {
+            feedbackPassword.text('');
+            // Al borrar la contraseña, si el email fue modificado, validar email
+            emailInput.trigger('keyup');
+            return;
+        }
+
+        typingTimerPass = setTimeout(() => {
+            const resultado = evaluarFuerza(pass);
+            feedbackPassword.text(resultado.msg).css('color', resultado.color);
+        }, delay);
+    });
+
+    // Validación email solo si contraseña está vacía y email modificado
+    emailInput.on('keyup', function() {
+        clearTimeout(typingTimerEmail);
+        const email = $(this).val();
+        const pass = passwordInput.val();
+
+        if (pass.length > 0) {
+            // Si hay contraseña, no validar email
+            feedbackEmail.text('');
+            return;
+        }
+
+        // Solo verificar si el email fue modificado respecto al original
+        if (email !== emailOriginal) {
+            if (email.length > 5) {
+                feedbackEmail.text('Verificando correo... 🔄').css('color', 'gray');
+                typingTimerEmail = setTimeout(() => verificarEmail(email), delay);
+            } else {
+                feedbackEmail.text('');
+            }
+        } else {
+            // Si email es igual al original, limpiar feedback
+            feedbackEmail.text('');
+        }
+    });
+
+    function verificarEmail(email) {
+        $.ajax({
+            url: '{{ route('verificar.email') }}',
+            type: 'POST',
+            data: {
+                email: email,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.valid) {
+                    feedbackEmail.text(response.message).css('color', 'green');
+                } else {
+                    feedbackEmail.text(response.message).css('color', 'red');
+                }
+            },
+            error: function() {
+                feedbackEmail.text('⚠️ Error al verificar el correo.').css('color', 'orange');
+            }
+        });
+    }
+
+    // Validación final antes de enviar el formulario
+    $('form-editar').on('submit', function(e) {
+        const pass = passwordInput.val();
+        const emailMsg = feedbackEmail.text();
+
+        if (pass.length > 0) {
+            const resultado = evaluarFuerza(pass);
+            if (resultado.msg === 'Contraseña muy débil, debe tener al menos 8 caracteres') {
+                e.preventDefault();
+                alert('La contraseña debe ser aceptable o fuerte para continuar.');
+                return false;
+            }
+        } else {
+            // Si no hay contraseña, el email debe estar validado correctamente
+            if (emailMsg.includes('no existe') || emailMsg.includes('Error') || emailMsg === '') {
+                e.preventDefault();
+                alert('Por favor, ingrese un correo válido antes de guardar.');
+                return false;
+            }
+        }
+    });
+});
+
+
+</script>

@@ -33,6 +33,39 @@
     .colored-toast .swal2-html-container {
         color: white;
     }
+
+    .rotate-text {
+        transform: rotate(-90deg);
+        white-space: nowrap;
+
+        /* Para evitar que el texto se divida */
+        text-align: center;
+        font-size: 10px;
+        vertical-align: middle;
+        /* Centrar el texto */
+        width: 40px;
+
+        /* Ajusta el ancho si es necesario */
+    }
+/* Ajuste general de las cabeceras para que la tabla no se deforme */
+
+
+</style>
+<style>
+    th {
+        height: 70px !important;     /* Ajusta la altura */
+        vertical-align: middle !important;
+        padding-top: 15px !important;
+        padding-bottom: 15px !important;
+    }
+
+    /* Si usas texto rotado */
+    .rotate-text {
+        height: 120px !important;    /* Más alto para el texto rotado */
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        white-space: nowrap;
+    }
 </style>
 
 <div class="container-fluid">
@@ -54,6 +87,34 @@
 @stop
 
 @section('content')
+@if (session('error'))
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: '¡Atención!',
+        text: '{{ session('error') }}'
+    });
+</script>
+@endif
+
+<form method="GET" action="{{ route('profesor.asistencias.index') }}" class="row g-3">
+
+    <div class="col-md-6">
+        <label for="desde" class="form-label">Desde</label>
+        <input type="date" id="desde" name="desde" class="form-control"
+            value="{{ request('desde') }}"
+            onchange="this.form.submit()">
+    </div>
+
+    <div class="col-md-6">
+        <label for="hasta" class="form-label">Hasta</label>
+        <input type="date" id="hasta" name="hasta" class="form-control"
+            value="{{ request('hasta') }}"
+            onchange="this.form.submit()">
+    </div>
+
+</form>
+
 <div class="modal-footer">
 
 
@@ -62,18 +123,10 @@
     </a>
 
 
-    <form method="GET" action="{{ route('profesor.asistencias.index') }}">
-        <label for="mes" class="form-label">Seleccione el Mes</label>
-        <select id="mes" name="mes" class="form-select" onchange="this.form.submit()">
-            @foreach ($meses as $mes => $nombre)
-            <option value="{{ $mes }}" {{ $mesSeleccionado == $mes ? 'selected' : '' }}>
-                {{ $nombre }}
-            </option>
-            @endforeach
-        </select>
-    </form>
-    <a href="{{ route('pdf.asistencias', ['mes' => $mesSeleccionado]) }}" class="btn btn-danger" data-toggle="tooltip" data-placement="left" title="Exportar a PDF"> <i class="fa fa-file-pdf"></i> PDF</a>
-    <a href="{{ route('profesor.asistencias.show') }}" class="btn btn-primary">Ver Listado</a>
+    
+    <!--              ---------------PDF
+        <a href="{{ route('pdf.asistencias', ['fecha' => $desde]) }}" class="btn btn-danger" data-toggle="tooltip" data-placement="left" title="Exportar a PDF"> <i class="fa fa-file-pdf"></i> PDF</a>
+    <a href="{{ route('profesor.asistencias.show') }}" class="btn btn-primary">Ver Listado</a>-->
 
 
 </div>
@@ -81,17 +134,28 @@
 <br>
 
 
-<div class="card body py-2 px-1">
+<div class="table-responsive">
     <table id="productos" class="table table-striped shadow-lg mt-4">
         <thead class="bg-dark text-white">
             <tr>
                 <th>ID</th>
-                <th>NOMBRE Y APELLIDO </th>
-                <th>TOTAL ASISTENCIA</th>
-                <th>AUSENCIAS JUSTIFICADAS</th>
-                <th>AUSENCIAS INJUSTIFICADAS</th>
-                <th>% ASISTENCIA</th>
-                 <!-- <th>ACCIONES</th>-->
+                <th>NOMBRES Y APELLIDOS </th>
+                @foreach ($fechas as $fecha)
+                
+                <th class="rotate-text">{{ $fecha->format('d/m/Y') }}
+                    <a href="{{ route('profesor.asistencias.edit', ['fecha' => $fecha->format('Y-m-d'), 'curso_id' => $idParalelo]) }}" 
+                        class="btn btn-sm btn-primary mt-1" 
+                        title="Editar asistencias">
+                        <i class="fa fa-edit"></i>
+                    </a>
+
+                </th>
+                @endforeach
+                <th>PRESENTES</th>
+                <th>AUSENTES</th>
+                <th>JUSTIFICADAS</th>
+                <th>TOTAL</th>
+                <!-- <th>ACCIONES</th>-->
             </tr>
         </thead>
         <tbody>
@@ -103,21 +167,28 @@
             $datosAsistencia = $estudiante->calcularAsistencias($asistencias);
             @endphp
             <tr>
-                <td>{{ $estudiante->id }}</td>
-
+                <td>{{ $loop->iteration }}</td>
                 <td>{{ $estudiante->nombres_es }} {{ $estudiante->apellidos_es }}</td>
+                
+                @foreach ($fechas as $fecha)
+                        @php
+                        // Crear la clave para acceder a las asistencias
+                        $key = $estudiante->id . '_' . $fecha->format('Y-m-d');
+                        $asistencia = $asistenciasAgrupadas->get($key); // Buscar la asistencia por la clave
+                        @endphp
+                        <td>
+                            @if ($asistencia)
+                            {{ ucfirst($asistencia->first()->estado) }} <!-- Mostrar el estado de la asistencia -->
+                            @else
+                            ---- <!-- No hay asistencia registrada -->
+                            @endif
+                        </td>
+                @endforeach
                 <td>{{ $estudiante->total_presentes }}</td>
                 <td>{{ $estudiante->total_ausentes }}</td>
                 <td>{{ $estudiante->total_justificados }}</td>
-                <!-- <td>{{ $estudiante->total_tardes }}</td>
-                <td>{{ $estudiante->total_asistencias }}</td>-->
+                <td>{{ $estudiante->total_asistencias }}</td>
 
-                <td>{{ $estudiante->totales_asistencias['porcentaje'] }}%</td>
-                 <!-- <td>
-                    <a href="{{ route('profesor.estudiantes.show', $estudiante->id) }}" class="btn btn-info btn-sm">
-                        Asistencias
-                    </a>
-                </td>-->
             </tr>
             @endforeach
         </tbody>

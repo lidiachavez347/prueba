@@ -32,6 +32,8 @@ return new class extends Migration
             $table->foreign('id_rol')->references('id')->on('roles')->onDelete('cascade');
 
             $table->string('qr_token')->unique();
+            $table->string('qr_url')->nullable(true);
+            $table->string('last_login_at')->nullable(true);
 
             $table->rememberToken();
             $table->timestamps();

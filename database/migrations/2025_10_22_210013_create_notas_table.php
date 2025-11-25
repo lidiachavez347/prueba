@@ -19,20 +19,22 @@ return new class extends Migration
             $table->unsignedBigInteger('id_estudiante');
             $table->foreign('id_estudiante')->references('id')->on('estudiantes')->onDelete('cascade');
 
-            $table->unsignedBigInteger('id_materia');
-            $table->foreign('id_materia')->references('id')->on('asignaturas')->onDelete('cascade');
-
             $table->unsignedBigInteger('id_criterio');
             $table->foreign('id_criterio')->references('id')->on('criterios')->onDelete('cascade');
+
+            $table->unsignedBigInteger('id_materia');
+            $table->foreign('id_materia')->references('id')->on('asignaturas')->onDelete('cascade');
 
             $table->unsignedBigInteger('id_trimestre');
             $table->foreign('id_trimestre')->references('id')->on('trimestres')->onDelete('cascade');
             
             $table->unsignedBigInteger('id_dimencion');
             $table->foreign('id_dimencion')->references('id')->on('dimencions')->onDelete('cascade');
-
-            $table->string('detalle');
+        
+            $table->unsignedBigInteger('id_curso');
+            $table->foreign('id_curso')->references('id')->on('cursos')->onDelete('cascade');
             $table->date('fecha');
+
 
             $table->timestamps();
         });

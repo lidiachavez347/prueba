@@ -16,9 +16,16 @@ return new class extends Migration
             $table->id();
             $table->string('nombre_curso');
             $table->string('paralelo',1);
+            
+            $table->unsignedBigInteger('id_gestion');
+            $table->foreign('id_gestion')->references('id')->on('gestiones')->onDelete('cascade');
+
             $table->boolean('estado_curso')->default(1);
             $table->timestamps();
+            
+            $table->unique(['nombre_curso', 'paralelo', 'id_gestion'], 'unique_curso_paralelo_gestion');
         });
+
     }
 
     /**

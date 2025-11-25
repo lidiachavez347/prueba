@@ -8,9 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Profesor_asignatura extends Model
 {
     use HasFactory;
+    protected $table = 'profesor_asignaturas';
+
     protected $fillable = ['id_profesor', 'id_curso','id_asignatura','estado'];
 
     //foranea
+    public function profesor()
+    {
+        return $this->belongsTo(User::class, 'id_profesor');
+    }
     public function profesore()
     {
         return $this->belongsTo(User::class, 'id_profesor');
@@ -23,6 +29,5 @@ class Profesor_asignatura extends Model
     {
         return $this->belongsTo(Asignatura::class, 'id_asignatura');
     }
-
 
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AsignaturasController;
 use App\Http\Controllers\Admin\AsistenciaController;
+use App\Http\Controllers\Admin\AulaController as AdminAulaController;
 use App\Http\Controllers\Admin\BookController;
 use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\ConfigController;
@@ -28,7 +29,7 @@ use App\Http\Controllers\Estudiante\ExamenController as EstudianteExamenControll
 use App\Http\Controllers\Estudiante\TareaController;
 use App\Http\Controllers\EventoController;
 use App\Http\Controllers\PredictController;
-use App\Http\Controllers\Profesor\AsistenciaController as ProfesorAsistenciaController;
+
 use App\Http\Controllers\Profesor\AulaController;
 use App\Http\Controllers\Profesor\AutomaticoController;
 use App\Http\Controllers\Profesor\CalendarController as ProfesorCalendarController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\Profesor\ResultadoTareaController;
 use App\Http\Controllers\Profesor\TareasController;
 use App\Http\Controllers\Profesor\TemastreController;
 use App\Http\Controllers\Profesor\TrimestreController;
+use App\Http\Controllers\SmsController;
 use App\Http\Controllers\Tutor\AlertasController;
 use App\Http\Controllers\Tutor\CalendarController as TutorCalendarController;
 use App\Http\Controllers\WhatsAppController;
@@ -52,9 +54,15 @@ use Illuminate\Support\Facades\Auth;
 use PHPUnit\Event\EventCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Auth\QrLoginController;
+use App\Http\Controllers\Profesor as AppHttpControllersProfesorAsistenciaController;
 
-
-
+use App\Http\Controllers\Profesor\AsistenciaController as AsistenciaControllerAlias;
+use App\Http\Controllers\Profesor\CentralizadorController;
+use App\Http\Controllers\Profesor\DecidirController;
+use App\Http\Controllers\Profesor\HacerController;
+use App\Http\Controllers\Profesor\SaberController;
+use App\Http\Controllers\Profesor\SerController;
 use Illuminate\Support\Str;
 /*
 |--------------------------------------------------------------------------
@@ -65,10 +73,21 @@ use Illuminate\Support\Str;
 | routes are loaded by the RouteServiceProvider and all of them will
 | be assigned to the "web" middleware group. Make something great!
 |Route::put('/predict', [PredictController::class, 'predict']);
+
 */
+
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/boletin/estudiante/{id}/pdf', [ProfesorEstudianteController::class, 'pfboletin'])->name('pdf.pdf_trimestre');
+Route::get('/boletin/{id}', [ProfesorEstudianteController::class, 'boletin'])->name('boletin.ver');
+//Route::get('boletin/estudiante/{id}/ver', [ProfesorEstudianteController::class, 'verBoletin'])->name('pdf.pdf_trimestre');
+//Route::get('boletin/estudiante/{id}/pdf', [EstudianteController::class, 'pfboletin']);
+
+
+
+Route::get('/enviar-sms', [SmsController::class, 'enviarSms']);
 
 Auth::routes(['verify' => true]);
 
@@ -81,70 +100,88 @@ Route::post('/email/verification-notification', function (Request $request) {
 
 
 // routes/web.php
-use App\Http\Controllers\Auth\QrLoginController;
-
 //Route::view('/play', 'play');
-Route::view('/auth/scan', 'auth.qr-scan');
 //Route::get('/auth/login', [QrLoginController::class, 'showQrLogin'])->name('auth.qr-login');
-
-Route::get('/home', function () {
-    return view('home');
-})->middleware(['auth'])->name('home');
-
-Route::get('/auth/login', function () {
-    return view('auth.qr-login');
-})->name('auth.qr-login');
 //::get('/qrscanner',[QrLoginController::class,'qrscanner'])->name('qrscanner');
 //Route::post('/inicio/login', [QrLoginController::class,'loginEntry']);//Check whether the login has been confirmed ,and return the token in response
-Route::get('/qr/generate', function () {
+
+
+Route::view('/auth/scan', 'auth.qr-scan');
+//QR LOGIN DESDE LA LAPTOP
+Route::get('/auth/login', function () {
+    // Mostrar la vista con el código QR
+    return view('auth.qr-login');
+})->name('auth.qr-login');
+
+
+/*Route::get('/api/qr/generate', function () {
     $token = Str::uuid()->toString();
     $url = url("/api/qr/confirm/{$token}");
 
-    return response()->json([
-        'token' => $token,
-        'url' => $url,
-    ]);
-});
+    return response()->json(['token' => $token, 'url' => $url]);
+});*/
 
-Route::get('/api/qr/generate', [QrLoginController::class, 'generate']);
+//ADMIN QRLOGIN
+//1º GENERAR
+
+//2º CONFIRMAR DESDE EL CELULAR
 Route::get('/api/qr/confirm', [QrLoginController::class, 'confirm']);
-Route::get('/api/qr/check/{token}', [QrLoginController::class, 'check']);
-Route::get('/qr/login/{token}', [QrLoginController::class, 'loginWithQr']);
+
+//Route::post('/api/qr/generate', [QrLoginController::class, 'generate']);
+//3º CHECK DESDE LA LAPTOP
+//Route::get('/api/qr/check/{token}', [QrLoginController::class, 'check']);
+//4º LOGIN DESDE LA LAPTOP
+Route::get('/api/login/{token}', [QrLoginController::class, 'loginWithQr']);
+//5º LISTAR SESIONES QR
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/api/qr-sessions', [QrLoginController::class, 'list']);
+    Route::delete('/api/qr-sessions/{id}', [QrLoginController::class, 'destroy']);
+});
+//ES OTRO CHECK PARA ELIMINAR LA SESION
+Route::get('/api/qr/status/{token}', [QRLoginController::class, 'status']);
+//Route::get('/api/qr-sessions', [QrLoginController::class, 'list']);
+//Route::delete('/api/qr-sessions/{id}', [QrLoginController::class, 'destroy']);
+//Route::get('/qr/status/{token}', [QrLoginController::class, 'checkStatus']);
+
+//LOGUEA EL CELULAR CON EL QR DE WHARTSAPP
+Route::get('/login/qr/{token}', [AuthController::class, 'loginWithQrCelular']);
+/*/qr/login/{token}    ----- /login/qr/{token}*/
+
 
 //Route::post('/qr-complete', [AuthQrController::class, 'completeLogin'])->name('qr.complete');
-
 //require __DIR__.'/auth.php';
+//   Route::get('admin/config/listar', [ConfigController::class, 'listarGestiones'])->name('admin.config.listar');
+// Ruta para listar las niveles
+
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-
 Route::middleware(['auth'])->group(function () {
 
-    //ya esta configuracion
+//tutor
+        Route::resource('tutores/notas', AlertasController::class)->names('tutores.notas');
+    //ADMIN CONFIG YA ESTA
     Route::resource('admin/config', ConfigController::class)->names('admin.config');
     Route::get('config/institucion', [ConfigController::class, 'show'])->name('admin.config.institucion');
     Route::post('config/institucion/{id}/edit', [ConfigController::class, 'edit'])->name('admin.config.edit');
 
-    // Ruta para listar las gestiones
+    //ADMIN GESTION YA ESTA
     Route::resource('admin/gestion', GestionController::class)->names('admin.gestion');
     Route::get('/admin/gestion/{id}', [GestionController::class, 'show'])->name('admin.gestion.show');
     Route::put('/admin/gestion/{id}/edit', [GestionController::class, 'edit'])->name('admin.gestion.edit');
     Route::put('/admin/gestion/{id}', [GestionController::class, 'update'])->name('admin.gestion.update');
     Route::delete('admin/gestion/{id}', [GestionController::class, 'destroy'])->name('admin.gestion.destroy');
-    //   Route::get('admin/config/listar', [ConfigController::class, 'listarGestiones'])->name('admin.config.listar');
-
-    // Ruta para listar las niveles
 
 
-    // Ruta para listar las grados
+    //ADMIN CURSOS
     Route::resource('admin/grados', GradoController::class)->names('admin.grados');
     Route::get('/admin/grados/{id}', [GradoController::class, 'show'])->name('admin.grados.show');
     Route::put('/admin/grados/{id}/edit', [GradoController::class, 'edit'])->name('admin.grados.edit');
     Route::put('/admin/grados/{id}', [GradoController::class, 'update'])->name('admin.grados.update');
     Route::delete('admin/grados/{id}', [GradoController::class, 'destroy'])->name('admin.grados.destroy');
 
-    // Ruta para listar las materias
+    //ADMIN MATERIAS
     Route::resource('admin/materias', MateriaController::class)->names('admin.materias');
     Route::get('/admin/materias/{id}', [MateriaController::class, 'show'])->name('admin.materias.show');
     Route::put('/admin/materias/{id}/edit', [MateriaController::class, 'edit'])->name('admin.materias.edit');
@@ -158,9 +195,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/admin/estudiantes/{id}/edit', [EstudianteController::class, 'edit'])->name('admin.estudiantes.edit');
     Route::put('/admin/estudiantes/{id}', [EstudianteController::class, 'update'])->name('admin.estudiantes.update');
     Route::delete('admin/estudiantes/{id}', [EstudianteController::class, 'destroy'])->name('admin.estudiantes.destroy');
-    // Ruta para la búsqueda de tutores
+    //ADMIN BUSCAR TUTORES
     Route::get('/autocomplete', [EstudianteController::class, 'autocomplete'])->name('autocomplete');
     Route::get('/admin/reportes/estudiantes', [EstudianteController::class, 'exportarPDF'])->name('admin.pdf.estudiantes');
+
     // Route::get('profesor/reportes/pdf/{id}', [ProfesorUsernameController::class,'pdf'])->name('profesor.reportes.index');
 
     //ya esta profesores
@@ -171,15 +209,89 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('admin/profesores/{id}', [ProfesorController::class, 'destroy'])->name('admin.profesores.destroy');
     Route::get('/admin/reportes/profesores', [ProfesorController::class, 'profesoresPDF'])->name('admin.pdf.profesores');
 
-
-    //ya esta permisos
+    //ADMIN PERMISOS YA ESTA
     Route::resource('admin/permisos', PermissionController::class)->names('admin.permisos');
+    ///CRITERIOS SER
+    Route::resource('profesor/ser', SerController::class)->names('profesor.ser');
+
+    Route::get(
+        '/profesor/ser/criterio/{id}/data',
+        [SerController::class, 'getCriterioData']
+    );
+
+    Route::post(
+        '/profesor/ser/criterio/{id}/actualizar',
+        [SerController::class, 'update']
+    );
+
+    Route::delete(
+        '/profesor/ser/criterio/{id}/eliminar',
+        [SerController::class, 'destroy']
+    );
+    //DIMENICON SABER
+    Route::resource('profesor/saber', SaberController::class)->names('profesor.saber');
+
+    Route::get(
+        '/profesor/saber/criterio/{id}/data',
+        [SaberController::class, 'getCriterioData']
+    );
+
+    Route::post(
+        '/profesor/saber/criterio/{id}/actualizar',
+        [SaberController::class, 'update']
+    );
+
+    Route::delete(
+        '/profesor/saber/criterio/{id}/eliminar',
+        [SaberController::class, 'destroy']
+    );
+    //DIMENCION HACER
+    Route::resource('profesor/hacer', HacerController::class)->names('profesor.hacer');
+
+    Route::get(
+        '/profesor/hacer/criterio/{id}/data',
+        [HacerController::class, 'getCriterioData']
+    );
+
+    Route::post(
+        '/profesor/hacer/criterio/{id}/actualizar',
+        [HacerController::class, 'update']
+    );
+
+    Route::delete(
+        '/profesor/hacer/criterio/{id}/eliminar',
+        [HacerController::class, 'destroy']
+    );
+    //DIMENCION DECIDIR
+Route::resource('profesor/decidir', DecidirController::class)->names('profesor.decidir');
+
+    Route::get(
+        '/profesor/decidir/criterio/{id}/data',
+        [DecidirController::class, 'getCriterioData']
+    );
+
+    Route::post(
+        '/profesor/decidir/criterio/{id}/actualizar',
+        [DecidirController::class, 'update']
+    );
+
+    Route::delete(
+        '/profesor/decidir/criterio/{id}/eliminar',
+        [DecidirController::class, 'destroy']
+    );
+    //centralizador
+    Route::get('/profesor/centralizador/', [CentralizadorController::class, 'index'])
+    ->name('profesor.centralizador.index');
+
+    ///////////////////////////////
+
+
     Route::get('/admin/permisos/{id}', [PermissionController::class, 'show'])->name('admin.permisos.show');
     Route::get('/admin/permisos/{id}/edit', [PermissionController::class, 'edit'])->name('admin.permisos.edit');
     Route::put('/admin/permisos/{id}', [PermissionController::class, 'update'])->name('admin.permisos.update');
     Route::delete('/admin/permisos/{id}', [PermissionController::class, 'destroy'])->name('admin.permisos.destroy');
 
-    //ya esta usuarios
+    //USUARIOS ADMIN YA ESTA
     Route::resource('admin/usuarios', UserController::class)->names('admin.usuarios');
     Route::get('/admin/usuarios/{id}', [UserController::class, 'show'])->name('admin.usuarios.show');
     Route::put('/admin/usuarios/{id}/edit', [UserController::class, 'edit'])->name('admin.usuarios.edit');
@@ -187,7 +299,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('admin/usuarios/{id}', [UserController::class, 'destroy'])->name('admin.usuarios.destroy');
     Route::get('/admin/reportes/usuarios', [UserController::class, 'usuariosPDF'])->name('admin.pdf.usuarios');
 
+    Route::get('/enviar-qr/{id}', [UserController::class, 'enviarQrWhatsApp']);
+    Route::get('/prueba-whatsapp', [UserController::class, 'pruebaWhatsApp']);
 
+    //ADMIN TUTORES
     Route::resource('admin/tutores', TutorController::class)->names('admin.tutores');
     Route::get('/admin/tutores/{id}', [TutorController::class, 'show'])->name('admin.tutores.show');
     Route::put('/admin/tutores/{id}/edit', [TutorController::class, 'edit'])->name('admin.tutores.edit');
@@ -195,6 +310,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('admin/tutores/{id}', [TutorController::class, 'destroy'])->name('admin.tutores.destroy');
     Route::get('/admin/reportes/tutores', [TutorController::class, 'tutoresPDF'])->name('admin.pdf.tutores');
 
+    Route::delete('profesor/temas/{id}', [TemastreController::class, 'destroy'])->name('profesor.temas.destroy');
     //ya esta trimestre
     Route::resource('admin/trimestres', AdminTrimestreController::class)->names('admin.trimestres');
     Route::get('/admin/trimestres/{id}', [AdminTrimestreController::class, 'show'])->name('admin.trimestres.show');
@@ -203,47 +319,23 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/admin/trimestres/{id}', [AdminTrimestreController::class, 'destroy'])->name('admin.trimestres.destroy');
 
     //ya esta temas 
+    Route::post('/temas/store', [TemastreController::class, 'store'])->name('profesor.temas.store');
+    Route::post('/tema/avance', [TemastreController::class, 'marcarAvance'])->name('tema.avance');
+    Route::get('/tema/{id}/editar', [TemastreController::class, 'editar'])->name('profesor.temas.edit');
+    Route::get('/tema/{id}', [TemastreController::class, 'update'])->name('profesor.temas.update');
+    Route::delete('/tema/{id}', [TemastreController::class, 'eliminar'])->name('tema.eliminar');
+
+
+
+
     Route::resource('profesor/temas', TemastreController::class)->names('profesor.temas');
+
     Route::get('/profesor/temas/{id}', [TemastreController::class, 'show'])->name('profesor.temas.show');
-    Route::get('/profesor/temas/{id}/edit', [TemastreController::class, 'edit'])->name('profesor.temas.edit');
+    //Route::get('/profesor/temas/{id}/edit', [TemastreController::class, 'edit'])->name('profesor.temas.edit');
     Route::put('/profesor/temas/{id}', [TemastreController::class, 'update'])->name('profesor.temas.update');
     Route::delete('/profesor/temas/{id}', [TemastreController::class, 'destroy'])->name('profesor.temas.destroy');
 
-    //parece que falta
-    Route::resource('profesor/tareas', TareasController::class)->names('profesor.tareas');
-    Route::get('/profesor/tareas/{id}', [TareasController::class, 'show'])->name('profesor.tareas.show');
-    Route::get('/profesor/tareas/{id}/edit', [TareasController::class, 'edit'])->name('profesor.tareas.edit');
-    Route::put('/profesor/tareas/{id}', [TareasController::class, 'update'])->name('profesor.tareas.update');
-    Route::delete('/profesor/tareas/{id}', [TareasController::class, 'destroy'])->name('profesor.tareas.destroy');
-    Route::get('temas/{id}', [TareasController::class, 'obtenerTemasPorAsignatura'])->name('temas.por.asignatura');
 
-    Route::get('/profesor/casa/{id}', [CasaController::class, 'show'])->name('profesor.casa.show');
-    Route::put('/profesor/casa/{id}', [CasaController::class, 'update'])->name('profesor.casa.update');
-    Route::post('/profesor/casa/{id}', [CasaController::class, 'store'])->name('profesor.casa.store');
-
-    Route::get('/profesor/aula/{id}', [AulaController::class, 'show'])->name('profesor.aula.show');
-    Route::put('/profesor/aula/{id}', [AulaController::class, 'update'])->name('profesor.aula.update');
-
-
-    //PROFESRO EVALUACIONES
-    Route::resource('profesor/evaluaciones', ExamenController::class)->names('profesor.evaluaciones');
-    Route::get('/profesor/evaluaciones/{id}', [ExamenController::class, 'show'])->name('profesor.evaluaciones.show');
-    Route::get('/profesor/evaluaciones/{id}/edit', [ExamenController::class, 'edit'])->name('profesor.evaluaciones.edit');
-    Route::put('/profesor/evaluaciones/{id}', [ExamenController::class, 'update'])->name('profesor.evaluaciones.update');
-    Route::delete('/profesor/evaluaciones/{id}', [ExamenController::class, 'destroy'])->name('profesor.evaluaciones.destroy');
-    //Route::get('evaluaciones/{id}', [ExamenController::class, 'obtenerTemasPorAsignatura'])->name('evaluaciones.por.asignatura');
-    Route::get('/profesor/escrito/{id}', [EscritoController::class, 'show'])->name('profesor.escrito.show');
-    Route::put('/profesor/escrito/{id}', [EscritoController::class, 'update'])->name('profesor.escrito.update');
-    Route::post('/profesor/escrito/{id}', [EscritoController::class, 'store'])->name('profesor.escrito.store');
-
-    Route::get('/profesor/automatico/{id}', [AutomaticoController::class, 'show'])->name('profesor.automatico.show');
-    Route::put('/profesor/automatico/{id}', [AutomaticoController::class, 'update'])->name('profesor.automatico.update');
-    Route::get('/profesor/automatico/create/{examen}', [AutomaticoController::class, 'crear'])->name('profesor.automatico.create');
-    Route::get('/profesor/automatico/{id}/edit', [AutomaticoController::class, 'edit'])->name('profesor.automatico.edit');
-    Route::put('/profesor/automatico/{id}', [AutomaticoController::class, 'update'])->name('profesor.automatico.update');
-    Route::delete('/profesor/automatico/{id}', [AutomaticoController::class, 'destroy'])->name('profesor.automatico.destroy');
-    Route::get('profesor/evaluaciones/{id}/preguntas', [AutomaticoController::class, 'create'])->name('profesor.automatico.create');
-    Route::post('profesor/automatico', [AutomaticoController::class, 'store'])->name('profesor.automatico.store');
 
     Route::resource('profesor/resultadoevaluaciones', ResultadoEvalController::class)->names('profesor.resultadoevaluaciones');
 
@@ -252,9 +344,13 @@ Route::middleware(['auth'])->group(function () {
     //profesor asignaturas
     Route::resource('admin/asignaturas', AsignaturasController::class)->names('admin.asignaturas');
     Route::get('/admin/asignaturas/{id}', [AsignaturasController::class, 'show'])->name('admin.asignaturas.show');
-    Route::get('/admin/asignaturas/{id}/edit', [AsignaturasController::class, 'edit'])->name('admin.asignaturas.edit');
+    Route::get('admin/asignaturas/{id_usuario}/{id_curso}/edit', [AsignaturasController::class, 'edit'])
+        ->name('admin.asignaturas.edit');
+
+    //Route::get('/admin/asignaturas/{id}/edit', [AsignaturasController::class, 'edit'])->name('admin.asignaturas.edit');
     Route::put('/admin/asignaturas/{id}', [AsignaturasController::class, 'update'])->name('admin.asignaturas.update');
-    Route::delete('/admin/asignaturas/{id}', [AsignaturasController::class, 'destroy'])->name('admin.asignaturas.destroy');
+    Route::delete('/admin/asignaturas/{id_usuario}/{id_curso}/delete', [AsignaturasController::class, 'destroy'])
+        ->name('admin.asignaturas.destroy');
 
     // Calendar routes
     // Mostrar el calendario
@@ -279,12 +375,12 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    Route::resource('admin/asistencias', AsistenciaController::class)->names('admin.asistencias');
-    Route::get('admin/asistencias/events', [AsistenciaController::class, 'getEventos'])->name('events.load');
+    // Route::resource('admin/asistencias', AsistenciaController::class)->names('admin.asistencias');
+    //Route::get('admin/asistencias/events', [AsistenciaController::class, 'getEventos'])->name('events.load');
     Route::post('/eventos', [EventoController::class, 'store'])->name('eventos.store');
     // Ruta para cargar los eventos en el calendario
 
-    Route::get('/events/load', [AsistenciaController::class, 'getEventos'])->name('events.load')->withoutMiddleware(['auth']);
+    // Route::get('/events/load', [AsistenciaController::class, 'getEventos'])->name('events.load')->withoutMiddleware(['auth']);
     Route::resource('admin/roles', RoleController::class)->names('admin.roles');
 
 
@@ -294,17 +390,15 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    //falta
-    Route::resource('profesor/resultadotarea', ResultadoTareaController::class)->names('profesor.resultadotarea');
-    Route::get('/profesor/resultadotarea/{id}', [ResultadoTareaController::class, 'show'])->name('profesor.resultadotarea.show');
-    Route::get('/profesor/resultadotarea/{id}/edit', [ResultadoTareaController::class, 'edit'])->name('profesor.resultadotarea.edit');
-    Route::put('/profesor/resultadotarea/{id}', [ResultadoTareaController::class, 'update'])->name('profesor.resultadotarea.update');
-    Route::delete('/profesor/resultadotarea/{id}', [ResultadoTareaController::class, 'destroy'])->name('profesor.resultadotarea.destroy');
-
     Route::get('/profesor/alertas', [ResultadoTareaController::class, 'mostrarAlertas'])->name('profesor.alertas.index');
 
     //falta
     Route::resource('profesor/contenidos', ContenidoController::class)->names('profesor.contenidos');
+
+    Route::get('/admin/contenido/{id}', [AdminAulaController::class, 'show'])
+        ->name('admin.contenidos.show');
+    //Route::get('/admin/asignaturas/{id}', [AsignaturasController::class, 'show'])->name('admin.asignaturas.show');
+
     Route::resource('estudiante/contenidos', EstudianteContenidoController::class)->names('estudiante.contenidos');
     Route::post('/contenidos/store', [TareaController::class, 'store'])->name('estudiante.tareas.store');
 
@@ -313,9 +407,10 @@ Route::middleware(['auth'])->group(function () {
     //Route::get('admin/usuarios/exportar/pdf', [EstudianteController::class, 'exportarPDF'])->name('admin.usuarios.exportar.plcdf');
 
     Route::get('/estudiantes/pdf', [ProfesorEstudianteController::class, 'descargarEstudiantesPdf'])->name('pdf.estudiantes');
-    Route::get('/asitencias/pdf', [ProfesorAsistenciaController::class, 'generarReportePDF'])->name('pdf.asistencias');
+    Route::get('/asitencias/pdf', [ProfesorEstudianteController::class, 'generarReportePDF'])->name('pdf.asistencias');
 
 
+    Route::get('/profesor/estudiantes/{id}/notas', [ProfesorEstudianteController::class, 'notas'])->name('profesor.estudiantes.notas');
 
 
 
@@ -331,9 +426,22 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    Route::resource('profesor/asistencias', ProfesorAsistenciaController::class)->names('profesor.asistencias');
+    Route::resource('profesor/asistencias', AsistenciaControllerAlias::class)->names('profesor.asistencias');
+
     Route::resource('profesor/estudiantes', ProfesorEstudianteController::class)->names('profesor.estudiantes');
-    Route::get('/profesor/asistencias/show', [AsistenciaController::class, 'show'])->name('profesor.asistencias.show');
+    Route::get('/profesor/asistencias/show', [ProfesorEstudianteController::class, 'show'])->name('profesor.asistencias.show');
+    // Ruta para mostrar el formulario de edición de asistencias por fecha y curso
+
+
+    // Mostrar formulario de edición de asistencias por curso y fecha
+    Route::get('/profesor/asistencias/{curso_id}/{fecha}/edit', [AsistenciaControllerAlias::class, 'edit'])
+        ->name('profesor.asistencias.edit');
+
+    // Actualizar asistencias
+    Route::put('/profesor/asistencias/{curso_id}/{fecha}', [AsistenciaControllerAlias::class, 'update'])
+        ->name('profesor.asistencias.update');
+
+
 
     Route::get('estudiante/examen/{id}', [EstudianteExamenController::class, 'show'])->name('estudiante.automatico.show');
     Route::post('estudiante/examen/store', [EstudianteExamenController::class, 'store'])->name('estudiante.automatico.store');
@@ -341,14 +449,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tutores/alertas', [AlertasController::class, 'mostrarAlertas'])->name('tutores.alertas.index');
     Route::get('tutores/calendario', [TutorCalendarController::class, 'index'])->name('tutores.calendario.index');
 });
-Route::get('/login/qr/{token}', [AuthController::class, 'loginWithQr']);
 
-Route::get('/enviar-qr/{id}', [UserController::class, 'enviarQrWhatsApp']);
-Route::get('/prueba-whatsapp', [UserController::class, 'pruebaWhatsApp']);
 
+Route::get('/enviar-qr/{id}', [EstudianteController::class, 'enviarQrWhatsApp']);
+Route::get('/prueba-whatsapp', [EstudianteController::class, 'pruebaWhatsApp']);
 
 
 Route::post('/verificar-email', function (Request $request) {
+
     $email = $request->email;
 
     if (!$email) {
@@ -362,20 +470,41 @@ Route::post('/verificar-email', function (Request $request) {
 
     $data = $response->json();
 
-    // Evaluar respuesta
-    if (!$data['format_valid'] || !$data['mx_found'] || !$data['smtp_check']) {
-        return response()->json(['valid' => false, 'message' => '❌ El correo no existe o no es válido.']);
+    // Si MailboxLayer devolvió un error
+    if (isset($data['success']) && $data['success'] === false) {
+        return response()->json([
+            'valid' => false,
+            'message' => '⚠️ Error de API: ' . ($data['error']['info'] ?? 'Sin detalle')
+        ]);
     }
 
-    return response()->json(['valid' => true, 'message' => '✅ El correo es válido y existe.']);
+    // Evaluar datos válidos
+    if (
+        empty($data['format_valid']) ||
+        empty($data['mx_found']) ||
+        empty($data['smtp_check'])
+    ) {
+        return response()->json([
+            'valid' => false,
+            'message' => '❌ El correo no existe o no es válido.'
+        ]);
+    }
+
+    return response()->json([
+        'valid' => true,
+        'message' => '✅ El correo es válido y existe.'
+    ]);
 })->name('verificar.email');
+//Route::post('/verificar-email', [UserController::class, 'verificarEmail'])
+//  ->name('verificar.email');
+
 
 
 Route::get('/login/qr/{token}', function ($token) {
     $user = User::where('qr_token', $token)->first();
 
     if (!$user) {
-        return redirect('/login')->with('error', 'Token inválido o expirado.');
+        return redirect('/login')->with('error', 'Token inválido o expirado web.');
     }
 
     // Loguear automáticamente
@@ -387,6 +516,3 @@ Route::get('/login/qr/{token}', function ($token) {
 
     return redirect()->route('home')->with('success', 'Inicio de sesión exitoso con QR.');
 });
-
-
-

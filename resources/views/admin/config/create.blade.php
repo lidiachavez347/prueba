@@ -74,39 +74,36 @@
 
 
             <div class="row">
+
                 <div class="col">
-                    
                     <div class="form-group">
-    {!! Form::label('nombre', 'Nombre:') !!}
-    {!! Form::text('nombre', null, ['class' => 'form-control', 'required' => true, 'placeholder' => 'Nombre de la institución']) !!}
-    @error('nombre')
-        <span class="text-danger">{{ $message }}</span>
-    @enderror
-</div>
-
-
+                        {!! Form::label('nombre', 'Nombre:') !!}
+                        {!! Form::text('nombre', null, ['class' => 'form-control', 'required' => true, 'placeholder' => 'Nombre de la institución']) !!}
+                        @error('nombre')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
+
                 <div class="col">
-                    
-                   <div class="form-group">
-    {!! Form::label('direccion', 'Dirección:') !!}
-    {!! Form::text('direccion', null, ['class' => 'form-control', 'required' => true, 'placeholder' => 'Dirección de la institución']) !!}
-    @error('direccion')
-        <span class="text-danger">{{ $message }}</span>
-    @enderror
-</div>
-               
+                <div class="form-group">
+                    {!! Form::label('direccion', 'Dirección:') !!}
+                    {!! Form::text('direccion', null, ['class' => 'form-control', 'required' => true, 'placeholder' => 'Dirección de la institución']) !!}
+                    @error('direccion')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
                 </div>
 
                 <div class="col">
                     
-                   <div class="form-group">
-    {!! Form::label('telefono', 'Teléfono:') !!}
-    {!! Form::number('telefono', null, ['class' => 'form-control', 'required' => true, 'placeholder' => 'Ejemplo: 71823456']) !!}
-    @error('telefono')
-        <span class="text-danger">{{ $message }}</span>
-    @enderror
-</div>
+                <div class="form-group">
+                    {!! Form::label('telefono', 'Teléfono:') !!}
+                    {!! Form::number('telefono', null, ['class' => 'form-control', 'required' => true, 'placeholder' => 'Ejemplo: 71823456']) !!}
+                    @error('telefono')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
                 
             </div>
 
@@ -114,35 +111,32 @@
             <div class="row">
                 <div class="col">
                     <div class="form-group">
-    {!! Form::label('logo', 'Logo:') !!}
-    {!! Form::file('logo', [
-        'class' => 'form-control',
-        'accept' => 'image/*',
-        'required' => true, // Hace obligatorio el campo
-    ]) !!}
-    @error('logo')
-        <span class="text-danger">{{ $message }}</span>
-    @enderror
-</div>
+                        {!! Form::label('logo', 'Logo:') !!}
+                        {!! Form::file('logo', ['class' => 'form-control', 'accept' => 'image/*','required' => true, // Hace obligatorio el campo
+                        ]) !!}
+                        @error('logo')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
 
+                <div class="col">
+                    <div class="form-group">
+                        {!! Form::label('email', 'Correo electrónico:') !!}
+                        {!! Form::email('email', null, ['class' => 'form-control', 'required' => true, 'placeholder' => 'ejemplo@gmail.com']) !!}
+                        @error('email')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
-    {!! Form::label('email', 'Correo electrónico:') !!}
-    {!! Form::email('email', null, ['class' => 'form-control', 'required' => true, 'placeholder' => 'ejemplo@gmail.com']) !!}
-    @error('email')
-        <span class="text-danger">{{ $message }}</span>
-    @enderror
-</div>
-                </div>
-                <div class="col">
-                    <div class="form-group">
-    {!! Form::label('estado', 'Estado:') !!}
-    {!! Form::select('estado', [1 => 'ACTIVO', 0 => 'INACTIVO'], null, ['class' => 'form-control', 'required' => true]) !!}
-    @error('estado')
-        <span class="text-danger">{{ $message }}</span>
-    @enderror
-</div>
+                        {!! Form::label('estado', 'Estado:') !!}
+                        {!! Form::select('estado', [1 => 'ACTIVO', 0 => 'INACTIVO'], null, ['class' => 'form-control', 'required' => true]) !!}
+                        @error('estado')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
             </div>
 

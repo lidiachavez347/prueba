@@ -23,6 +23,7 @@ use Barryvdh\DomPDF\PDF as DomPDFPDF;
 use PDF;
 use App\Http\Controllers\WhatsAppController;
 use App\Mail\SendCredentialsMail;
+use Illuminate\Validation\Rule;
 
 
 
@@ -47,7 +48,7 @@ class UserController extends Controller
         if (Auth::user()) {
             $usuarios = User::with('rol')
                 ->whereHas('rol', function ($query) {
-                    $query->whereIn('name', ['ADMIN', 'SECRETARIA']);
+                    $query->whereIn('name', ['DIRECTOR', 'SECRETARIA']);
                 })
                 ->get();
 
@@ -65,7 +66,7 @@ class UserController extends Controller
     {
         if (Auth::check()) {
             $options = Role::where('estado', 1)
-                ->whereIn('name', ['ADMIN', 'SECRETARIA'])
+                ->whereIn('name', ['DIRECTOR', 'SECRETARIA'])
                 ->pluck('name', 'id')
                 ->toArray();
 
@@ -125,6 +126,7 @@ class UserController extends Controller
                     'imagen.image' => 'El archivo debe ser una imagen válida.',
                     'imagen.mimes' => 'La imagen debe ser de tipo JPEG, PNG, JPG o GIF.',
                     'imagen.max' => 'La imagen no debe superar los 2 MB.',
+                    'password.required' => 'La contraseña es requerida'
                 ]
             );
 
@@ -137,9 +139,9 @@ class UserController extends Controller
             $data = $response->json();
             //VALIDAR RESPUESTA
             if (!$data['format_valid'] || !$data['mx_found'] || !$data['smtp_check']) {
-            return back()
-                ->withErrors(['email' => 'El correo ingresado no parece existir o no es válido.'])
-                ->withInput();
+                return back()
+                    ->withErrors(['email' => 'El correo ingresado no parece existir o no es válido.'])
+                    ->withInput();
             }
             //fin verificar el correo
             $prueba = Role::find($request->roles);
@@ -154,8 +156,8 @@ class UserController extends Controller
             $user->estado_user = $request->estado_user;
 
             //GENERA CONTRASEÑA
-            //$password = $this->generarPassword(8);
-            $user->password = bcrypt($request->password);
+            $password = $this->generarPassword(8);
+            $user->password = bcrypt($password);
             //$password1 = $request->password;
             $user->id_rol = $prueba->id;
             $user->ci = $request->ci;
@@ -163,7 +165,7 @@ class UserController extends Controller
             $user->fecha_nac = $request->fecha_nac;
 
             $token = Str::uuid();
-            $user->qr_token = $token;
+            $user->qr_token = $token; //para inicio de sesion con QR
 
             //GUARDAR IMAGEN EN EL ARCHIVO IMAGEN
             if ($request->hasFile('imagen')) {
@@ -178,7 +180,7 @@ class UserController extends Controller
 
             ///ENVIAR mensaje de verificacion de correo
             $user->sendEmailVerificationNotification();
-            
+
             //eviar correo con las credenciales
             //Mail::to($user->email)->send(new SendCredentialsMail($user, $password1));
 
@@ -203,60 +205,6 @@ class UserController extends Controller
             return redirect()->back();
         }
     }
-    private function subirQr($qrPath)
-    {
-        $uploadedFile = Cloudinary::upload($qrPath, [
-            'folder' => 'qr_usuarios',
-            'overwrite' => true,
-            'resource_type' => 'image'
-        ]);
-
-        $url = $uploadedFile->getSecurePath(); // URL HTTPS pública
-        return $url;
-    }
-    private function enviarQrWhatsApp($user)
-    {
-        try {
-            $tokenBot = env('TEXMEBOT_API_TOKEN'); // Tu API key
-            $telefono = preg_replace('/[^0-9]/', '', $user->telefono); // Solo números
-            $telefono = '+591' . ltrim($telefono, '0');
-            // dd($telefono);
-            $mensaje = "👋 Bienvenido/a {$user->nombres}!\n\n" .
-                "Has sido registrado correctamente en el sistema académico 📚\n\n" .
-                "🔑 Contraseña temporal: {$user->password_visible}\n" .
-                "📧 Correo: {$user->email}\n\n" .
-                "Atentamente,\nSistema de Gestión Académica";
-
-            //URL PUBLICA
-            // Subir QR a Cloudinary y obtener URL pública
-            $qrPathLocal = public_path("qr/qr_{$user->id}.png");
-            $qrUrl = $this->subirQr($qrPathLocal);
-            // Codificar mensaje para URL
-            $mensajeUrl = urlencode($mensaje);
-            // http://api.textmebot.com/send.php?recipient=[phone number]&apikey=[your premium apikey]&text=[text to send]
-
-            $url = "http://api.textmebot.com/send.php?recipient={$telefono}&apikey={$tokenBot}&text={$mensajeUrl}&file={$qrUrl}&json=yes";
-            // URL GET
-            // $url = "http://api.textmebot.com/send.php?recipient={$telefono}&apikey={$tokenBot}&text={$mensajeUrl}&json=yes";
-
-            // Hacer la petición GET
-            $response = Http::get($url);
-
-            // Revisar respuesta
-            if ($response->failed()) {
-                \Log::error('❌ Error al enviar WhatsApp: ' . $response->body());
-            } else {
-                \Log::info("✅ Mensaje enviado correctamente a {$telefono}");
-            }
-        } catch (\Exception $e) {
-            \Log::error('⚠️ Excepción al enviar WhatsApp: ' . $e->getMessage());
-        }
-    }
-
-
-
-
-
 
 
 
@@ -286,7 +234,7 @@ class UserController extends Controller
         if (Auth::user()) {
             $users = User::findOrFail($id);
 
-            $options = Role::whereIn('name', ['SECRETARIA', 'ADMIN'])
+            $options = Role::whereIn('name', ['SECRETARIA', 'DIRECTOR'])
                 ->pluck('name', 'id')
                 ->toArray();
 
@@ -306,8 +254,10 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         //
+        // Primero obtener al usuario
 
         if (Auth::user()) {
+            $user = User::findOrFail($id);
             $request->validate(
                 [
                     'nombres' => 'required|string|max:255',
@@ -317,15 +267,24 @@ class UserController extends Controller
                     'ci' => 'required|string|max:20',
                     'telefono' => 'required|string|max:15',
                     'fecha_nac' => 'required|date',
+
+                    // EMAIL (permite mantener el mismo)
                     'email' => [
                         'required',
                         'email',
                         'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/i',
-                        'unique:users,email',
+                        Rule::unique('users', 'email')->ignore($user->id),
                     ],
+
                     'estado_user' => 'required',
                     'roles' => 'required',
-                    'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    // Imagen opcional
+                    'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                    // Contraseña opcional pero si se llena DEBE ser segura
+                    'password' => [
+                        'required'
+
+                    ],
                 ],
                 [
                     'nombres.required' => 'El campo nombres es obligatorio.',
@@ -335,19 +294,26 @@ class UserController extends Controller
                     'ci.required' => 'El número de cédula es obligatorio.',
                     'telefono.required' => 'El teléfono es obligatorio.',
                     'fecha_nac.required' => 'Debe ingresar la fecha de nacimiento.',
-                    'fecha_nac.date' => 'La fecha de nacimiento debe tener un formato válido.',
+
                     'email.required' => 'El correo electrónico es obligatorio.',
                     'email.email' => 'Debe ingresar un correo electrónico válido.',
                     'email.regex' => 'Solo se permiten correos con dominio @gmail.com.',
                     'email.unique' => 'Este correo ya está registrado.',
+
                     'estado_user.required' => 'Debe seleccionar un estado.',
                     'roles.required' => 'Debe asignar un rol al usuario.',
-                    'imagen.required' => 'Debe subir una imagen.',
+
                     'imagen.image' => 'El archivo debe ser una imagen válida.',
-                    'imagen.mimes' => 'La imagen debe ser de tipo JPEG, PNG, JPG o GIF.',
+                    'imagen.mimes' => 'La imagen debe ser JPEG, PNG, JPG o GIF.',
                     'imagen.max' => 'La imagen no debe superar los 2 MB.',
+
+                    // Mensajes de contraseña
+                    'password.required' => 'La contraseña es requerida',
+                    'password.min' => 'La contraseña debe tener mínimo 8 caracteres.',
+                    'password.regex' => 'La contraseña debe incluir mayúsculas, minúsculas, números y símbolos.',
                 ]
             );
+
             $prueba = Role::find($request->roles);
 
             $user = User::find($id);
@@ -356,6 +322,7 @@ class UserController extends Controller
             $user->genero = $request->genero;
             $user->direccion = strtoupper($request->direccion);
             $user->email = $request->email;
+
             $user->estado_user = $request->estado_user;
 
             $user->id_rol = $prueba->id;
@@ -376,10 +343,23 @@ class UserController extends Controller
                 $user->password = Hash::make($password);
 
                 // Generar un nuevo qr_token (puedes usar cualquier lógica para generarlo)
-                $user->qr_token = Str::random(30); // ejemplo con Str helper
+                $token = Str::uuid();
+                $user->qr_token = $token; //para inicio de sesion con QR
+                //$user->qr_token = Str::random(30); // ejemplo con Str helper
 
                 // Guardar usuario con nueva contraseña y token
                 $user->save();
+                
+                $user->password_visible = $request->password;
+
+                $fileNameqr = "qr_{$user->id}.png";
+                //ruta
+                $qrPath = public_path("qr/{$fileNameqr}");
+                //INICAR SESION CON QR
+                $urlLogin = url("/login/qr/{$token}");
+                QrCode::format('png')->size(300)->generate($urlLogin, $qrPath);
+                // Enviar QR por WhatsApp
+                $this->enviarQrWhatsApp($user, $qrPath);
 
                 // Generar QR con el nuevo token y guardarlo localmente
                 //$fileNameqr = "qr_{$user->id}.png";
@@ -428,15 +408,103 @@ class UserController extends Controller
         if (Auth::check()) {
             // Obtener el estudiante con sus tutores relacionados
 
-            $usuarios = User::where('id_rol', 1)->get();
+            $usuarios = User::whereIn('id_rol', [1, 4])->get();
             // Renderizar la vista de PDF con los datos
-            $pdf = PDF::loadView('admin.pdf.usuarios', compact('usuarios'));
+            $pdf = PDF::loadView('admin.pdf.usuarios', [
+                'usuarios' => $usuarios
+            ])->setPaper('letter', 'landscape');
 
             return $pdf->stream('usuarios.pdf');
         } else {
             // Si no está autenticado
             Auth::logout();
-            return redirect()->route('login')->with('error', 'Debe iniciar sesión.');
+            return redirect()
+                ->route('login')
+                ->with('error', 'Debe iniciar sesión.');
+        }
+    }
+
+
+
+    public function verificarEmail(Request $request)
+    {
+        $email = $request->email;
+
+        // Validar formato
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Formato de email inválido ❌'
+            ]);
+        }
+
+        // Buscar si ya existe
+        $existe = User::where('email', $email)->where('id', '!=', $request->id)->exists();
+
+        if ($existe) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'El correo ya está registrado ❌'
+            ]);
+        }
+
+        return response()->json([
+            'valid' => true,
+            'message' => 'Correo disponible ✔️'
+        ]);
+    }
+    private function subirQr($qrPath)
+    {
+        $uploadedFile = Cloudinary::upload($qrPath, [
+            'folder' => 'qr_usuarios',
+            'overwrite' => true,
+            'resource_type' => 'image'
+        ]);
+
+        $url = $uploadedFile->getSecurePath(); // URL HTTPS pública
+        return $url;
+    }
+    private function enviarQrWhatsApp($user)
+    {
+        try {
+            $tokenBot = env('TEXMEBOT_API_TOKEN'); // Tu API key
+            $telefono = preg_replace('/[^0-9]/', '', $user->telefono); // Solo números
+            $telefono = '+591' . ltrim($telefono, '0');
+            // dd($telefono);
+            $mensaje = "👋 Bienvenido/a {$user->nombres}!\n\n" .
+                "Has sido registrado correctamente en el sistema académico 📚\n\n" .
+                "🔑 Contraseña: {$user->password_visible}\n" .
+                "📧 Correo: {$user->email}\n\n" .
+                "Atentamente,\nSistema de Gestión Académica";
+
+            //URL PUBLICA
+            // Subir QR a Cloudinary y obtener URL pública
+            $qrPathLocal = public_path("qr/qr_{$user->id}.png");
+            $qrUrl = $this->subirQr($qrPathLocal);
+            //actualizar el qr_url despues de guardar
+            $user = User::find($user->id);
+            $user->qr_url = $qrUrl;
+            $user->save();
+            // Codificar mensaje para URL
+            
+            $mensajeUrl = urlencode($mensaje);
+            // http://api.textmebot.com/send.php?recipient=[phone number]&apikey=[your premium apikey]&text=[text to send]
+
+            $url = "http://api.textmebot.com/send.php?recipient={$telefono}&apikey={$tokenBot}&text={$mensajeUrl}&file={$qrUrl}&json=yes";
+            // URL GET
+            // $url = "http://api.textmebot.com/send.php?recipient={$telefono}&apikey={$tokenBot}&text={$mensajeUrl}&json=yes";
+
+            // Hacer la petición GET
+            $response = Http::get($url);
+
+            // Revisar respuesta
+            if ($response->failed()) {
+                \Log::error('❌ Error al enviar WhatsApp: ' . $response->body());
+            } else {
+                \Log::info("✅ Mensaje enviado correctamente a {$telefono}");
+            }
+        } catch (\Exception $e) {
+            \Log::error('⚠️ Excepción al enviar WhatsApp: ' . $e->getMessage());
         }
     }
 }

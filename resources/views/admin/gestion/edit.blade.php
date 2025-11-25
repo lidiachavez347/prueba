@@ -5,6 +5,8 @@
 
 @include('admin.gestion.partials.form')
 
+<div id="errores-validacion" class="alert alert-danger d-none"></div>
+
 <div class="card-footer ">
     <center>
         <button type="submit" class="btn btn-success btn-sm" aria-label="guardar" data-toggle="tooltip" data-placement="top" title="Guardar">

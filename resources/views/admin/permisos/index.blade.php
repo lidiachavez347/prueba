@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
 @endsection
 @section('content_header')
+
 <style>
     .colored-toast.swal2-icon-success {
         background-color: #a5dc86 !important;
@@ -58,7 +59,8 @@
 </div>
 @stop
 @section('content')
-<div class="container-fluid mt-3 d-block d-md-none">
+
+<!--<div class="container-fluid mt-3 d-block d-md-none">
     <div class="row justify-content-center">
         <div class="col-11">
             <div class="card shadow-sm">
@@ -75,28 +77,43 @@
         </div>
     </div>
 </div>
+-->
 
 <div class="modal-footer">
     <a href="{{ route('admin.permisos.create') }}" class="btn btn-dark" data-toggle="tooltip" data-placement="left" title="Adicionar">
         <i class="fa fa-plus-circle" aria-hidden="true"></i> Nuevo</a>
 <!---BOTON ADICIONAR Y LOGIN QR-->
-        <h5 class="card-title mb-2 text-primary">
-                        <a href="/auth/scan" class="text-decoration-none">
-                        INICIAR SESION CON CODIGO QR
-                        </a>
-                    </h5>
+        
+
+
+
+
+                            {{--  <h5 class="card-title mb-2 text-primary">
+                                <a href="/auth/scan" class="text-decoration-none">
+                                INICIAR SESION CON CODIGO QR
+                                </a>
+                            </h5>
+
+
+
+
                     <!-- Botón de cerrar sesión -->
-    <form method="POST" action="{{ route('logout') }}">
-      @csrf
-      <button type="submit" class="btn btn-danger mt-4">
-        🔒 Cerrar sesión
-      </button>
-    </form>
+                                <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="btn btn-danger mt-4">
+                                    🔒 Cerrar sesión
+                                </button>
+                                </form>--}}
                     <!---FIN BOTON ADICIONAR Y LOGIN QR-->
 </div>
 
 <br>
 
+{{--
+aqui
+<div id="sesiones"></div>
+-----------------------------
+--}}
 <div class="card body py-2 px-1">
     <table id="productos" class="table table striped shadow-lg mt-4table table-striped">
         <thead class="bg-dark text-white">
@@ -104,15 +121,17 @@
                 <th>ID</th>
                 <th>NOMBRE</th>
                 <th>DESCRIPCION</th>
+                <th>FECHA DE REGISTRO</th>
                 <th>ACCIONES</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($permisos as $permiso)
             <tr id="permiso-{{ $permiso->id }}">
-                <td>{{ $permiso->id }}</td>
+                <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
                 <td>{{ $permiso->name }}</td>
                 <td>{{ $permiso->description }}</td>
+                <td>{{ $permiso->created_at }}</td>
                 <td>
 
                     <!-- Botón para ver detalles del permiso -->
@@ -180,15 +199,129 @@
         </tbody>
     </table>
 </div>
+@if (Auth::check())
+
+<script>
+let qrToken = "{{ session('qr_token') }}";
+
+// Solo activar si esta sesión fue iniciada por QR
+if (qrToken && qrToken !== "") {
+
+    console.log("Iniciando watcher global de logout… Token:", qrToken);
+
+    setInterval(() => {
+        fetch(`/api/qr/status/${qrToken}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.logout) {
+                    console.log("Sesión eliminada desde el celular. Cerrando laptop...");
+                    window.location.href = "/login";
+                }
+            })
+            .catch(err => console.error("Error verificando estado QR:", err));
+    }, 3000);
+}
+</script>
+@endif
 @stop
 
 
 @section('js')
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+
+
+<script>
+
+</script>
+<script>
+const token = localStorage.getItem("token"); // Ajusta según dónde guardes el token
+
+async function cargarSesiones() {
+    try {
+        const res = await fetch('/api/qr-sessions', {
+            headers: { 
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!res.ok) {
+            console.error("Error al cargar sesiones:", res.status);
+            return;
+        }
+
+        const data = await res.json();
+
+        let html = '';
+
+        data.sessions.forEach(s => {
+            html += `
+                <div class="card p-2 m-1 border">
+                    <b>ID:</b> ${s.id}<br>
+                    <b>Ip laptop:</b> ${s.ip_address}<br>
+                    <b>Estado:</b> ${s.confirmed ?? '---'}<br>
+                    <b>Navegador:</b> ${s.user_agent}<br>
+                    <b>Fecha:</b> ${s.created_at}<br>
+
+                    <button onclick="cerrar(${s.id})" class="btn btn-danger btn-sm">
+                        Cerrar sesión
+                    </button>
+                </div>
+            `;
+        });
+
+        document.getElementById("sesiones").innerHTML = html;
+
+    } catch (error) {
+        console.error("Fetch error:", error);
+    }
+}
+
+async function cerrar(id) {
+    try {
+        const res = await fetch(`/api/qr-sessions/${id}`, {
+            method: "DELETE",
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await res.json();
+        alert(data.message);
+
+        cargarSesiones(); // Refrescar lista
+
+    } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+    }
+}
+// Esta función consulta cada 5 segundos si la sesión QR sigue activa
+
+
+cargarSesiones();
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
 <script>
     $(document).ready(function() {
         $('#productos').DataTable({
@@ -331,9 +464,31 @@
                 $('#usuario-' + response.id).replaceWith(response.html);
             },
             error: function(xhr) {
-                console.error(xhr.responseText);
-                Swal.fire('Error', 'No se pudo actualizar el usuario', 'error');
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar el permiso.'
+                });
             }
+        }
         });
     });
 </script>
@@ -376,6 +531,8 @@
         title: 'Guardado exitosamente!'
     })
 </script>
+
+
 @endif
 
 @endsection

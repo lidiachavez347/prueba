@@ -60,13 +60,13 @@
 @section('content')
 
 
-<div class="modal-footer">
-  <a href="{{ route('admin.trimestres.create') }}" class="btn btn-dark" data-toggle="tooltip" data-placement="left" title="Adicionar">
+<!--<div class="modal-footer">
+<a href="{{ route('admin.trimestres.create') }}" class="btn btn-dark" data-toggle="tooltip" data-placement="left" title="Adicionar">
         <i class="fa fa-plus-circle" aria-hidden="true"></i> Nuevo</a>
 
     </div>
 
-<br>
+<br>-->
 
 <div class="card body py-2 px-1">
     <table id="productos" class="table table striped shadow-lg mt-4table table-striped">
@@ -74,17 +74,20 @@
             <tr>
                 <th>ID</th>
                 <th>PERIODO</th>
+                <th>GESTION</th>
                 <th>FECHA INICIO</th>
                 <th>FECHA FIN</th>
                 <th>ESTADO</th>
+                <th>FECHA DE REGISTRO</th>
                 <TH>ACCIONES</TH>
             </tr>
         </thead>
         <tbody>
             @foreach ($trimestres as $trimestre)
             <tr id="permiso-{{ $trimestre->id }}">
-                <td>{{ $trimestre->id }}</td>
+                <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
                 <td>{{ $trimestre->periodo }}</td>
+                <td>{{ $trimestre->gestion->gestion }}</td>
                 <td>{{ $trimestre->fecha_inicio }}</td>
                 <td>{{ $trimestre->fecha_fin }}</td>
                 <td width="70px" style="text-align: right">
@@ -96,6 +99,7 @@
                     <span class="badge badge-pill badge-warning">No permitido</span>
                     @endif
                 </td>
+                <td>{{ $trimestre->created_at }}</td>
                 <td>
 
                     <!-- Botón para ver detalles del permiso -->
@@ -142,7 +146,9 @@
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="editarUsuarioLabel">Editar Trimestre</h5>
+                                    <h5 class="modal-title" id="editarUsuarioLabel">
+                                        Editar Trimestre
+                                    </h5>
                                     <a href="#" class="btn btn-link" data-bs-dismiss="modal">X</a>
 
                                 </div>
@@ -309,7 +315,7 @@
             data: formData,
             processData: false,
             contentType: false,
-           success: function(response) {
+            success: function(response) {
     $('#editarUsuarioModal').modal('hide');
     Swal.fire({
         icon: 'success',
@@ -324,21 +330,31 @@
 },
 
             error: function(xhr) {
-    if (xhr.status === 422) {
-        let errors = xhr.responseJSON.errors;
-        let messages = '';
-        $.each(errors, function(key, value) {
-            messages += '<li>' + value[0] + '</li>';
-        });
-        Swal.fire({
-            icon: 'error',
-            title: 'Errores de validación',
-            html: '<ul style="text-align:left;">' + messages + '</ul>'
-        });
-    } else {
-        Swal.fire('Error', 'No se pudo actualizar el trimestre', 'error');
-    }
-}
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar el trimestre.'
+                });
+            }
+        }
 
         });
     });

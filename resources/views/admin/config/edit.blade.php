@@ -114,7 +114,7 @@
                             <input type="file" name="logo" class="form-control" accept="image/*">
                             @if($institucion && $institucion->logo)
                             <div class="mt-2">
-                                <img src="{{ asset('images/' . $institucion->logo) }}" alt="Logo Actual" width="100">
+                                <img name="logo" src="{{ asset('images/' . $institucion->logo) }}" alt="Logo Actual" width="100">
                             </div>
                             @endif
                             @error('logo')

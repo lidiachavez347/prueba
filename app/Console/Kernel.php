@@ -10,10 +10,10 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      */
-    protected function schedule(Schedule $schedule): void
-    {
-        // $schedule->command('inspire')->hourly();
-    }
+protected function scheduleTimezone()
+{
+    return 'America/La_Paz';
+}
 
     /**
      * Register the commands for the application.
@@ -24,4 +24,10 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
     }
+    protected function schedule(Schedule $schedule)
+{
+$schedule->command('app:enviar-notas-whats-app')->dailyAt('22:00');
+//$schedule->command('app:enviar-notas-whats-app')->everyMinute();
+}
+
 }

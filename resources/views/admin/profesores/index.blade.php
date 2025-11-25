@@ -66,7 +66,7 @@
     <a href="{{ route('admin.profesores.create') }}" class="btn btn-dark" data-toggle="tooltip" data-placement="left" title="Adicionar">
         <i class="fa fa-plus-circle" aria-hidden="true"></i> Nuevo</a>
     <a href="{{ route('admin.pdf.profesores') }}" class="btn btn-light" data-toggle="tooltip" data-placement="left" title="Exportar">
-        <i class="fa fa-upload" aria-hidden="true"></i> </a>
+        <i class="fa fa-upload" aria-hidden="true"></i> Reporte</a>
 </div>
 
 <br>
@@ -77,11 +77,13 @@
             <tr>
                 <th>ID</th>
                 <th>IMAGEN</th>
-                <th>NOMBRE</th>
-                <th>APELLIDO</th>
+                <th>NOMBRES Y APELLIDOS</th>
+        
                 <TH>GENERO</TH>
-                <th>NIVEL</th>
+            <th>TELEFONO</th>
+            <th>EMAIL</th>
                 <th>ESTADO</th>
+                <th>FECHA DE REGISTRO</th>
                 <th>ACCIONES</th>
             </tr>
         </thead>
@@ -90,12 +92,12 @@
 
             <tr id="permiso-{{ $profesor->id }}">
 
-                <td>{{ $profesor->id }}</td>
+                <td>{{ $loop->iteration }}</td>  {{-- 1,2,3... --}}
                 <td>
                     <img src="{{ asset('images/' . $profesor->imagen) }}" alt="Descripción de la imagen" style="width: 40px; height: 40px;">
                 </td>
-                <td><a href="#">{{ $profesor->nombres }}</a></td>
-                <td>{{ $profesor->apellidos }}</td>
+                <td><a href="#">{{ $profesor->nombres }} {{ $profesor->apellidos }}</a></td>
+                
                 <td width="70px" style="text-align: right">
                     @if ($profesor->genero == 0)
                     <span class="badge badge-pill badge-secondary">FEMENINO</span>
@@ -106,7 +108,8 @@
                     @endif
                 </td>
 
-                <td>{{$profesor->nivel}}</td>
+            <td>{{ $profesor->telefono }}</td>
+            <td>{{ $profesor->email }}</td>
 
                 <td width="70px" style="text-align: right">
                     @if ($profesor->estado_user == 1)
@@ -117,7 +120,7 @@
                     <span class="badge bg-warning">No permitido</span>
                     @endif
                 </td>
-
+<td>{{ $profesor->created_at }}</td>
                 <td>
 
 
@@ -331,16 +334,41 @@
             data: formData,
             processData: false,
             contentType: false,
+        
             success: function(response) {
                 $('#editarUsuarioModal').modal('hide');
                 location.reload(); // Recargar la página para ver los cambios (opcional)
                 // Aquí puedes usar un SweetAlert para notificar al usuario
                 $('#usuario-' + response.id).replaceWith(response.html);
             },
+        
             error: function(xhr) {
-                console.error(xhr.responseText);
-                Swal.fire('Error', 'No se pudo actualizar el usuario', 'error');
+
+            if (xhr.status === 422) {  
+                // Laravel envía errores de validación
+                let errores = xhr.responseJSON.errors;
+                let mensaje = "";
+
+                $.each(errores, function(campo, textos) {
+                    mensaje += textos[0] + "<br>";
+                });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores de Validación',
+                    html: mensaje
+                });
+
+            } else {
+                // Otros errores
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar la gestión.'
+                });
             }
+        }
+
         });
     });
 </script>
